@@ -1,0 +1,22 @@
+{
+  "name": "lkon",
+  "version": "2.0.0-BETA",
+  "description": "LKON is experimental type of Object Notification implemented as a open-source library for JS.",
+  "main": "lkon.js",
+  "scripts": {
+    "test": "test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ParrotCore/lkon.git"
+  },
+  "keywords": [
+    "lkon"
+  ],
+  "author": "parrotcore",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ParrotCore/lkon/issues"
+  },
+  "homepage": "https://github.com/ParrotCore/lkon#readme"
+}

@@ -1,0 +1,42 @@
+[
+	@city => "Moscow";
+	@population => 17200000;
+	@monuments => [
+		@* => "St. Basil's Cathedral";
+		@* => "Kremlin";
+		@* => "Red Square";
+	];
+	@dates => [
+		@first_mentioned => 1147;
+	];
+	@government => [
+		@body => [
+			@* => "City Duma";
+		];
+		@mayors => [
+			@* => [
+				@name => "Sergey";
+				@surname => "Sobyanin";
+				@function => "main";
+			];
+			@* => null;
+		];
+	];
+	@metro => [
+		@operator => "Moskovskiy Metropoliten";
+		@lines => 15;
+		@since => 1935;
+		@length => 424.7;
+		@stations => 247;
+	];
+	@more => [
+		@capitalCity => "Russia";
+		@highestTemperature => 38.2;
+		@lowestTemperature => -42.1;
+		@coffeeConsuments => Infinity;
+		@color => 11259375;
+		@tobaccoConsuments => 5e+27;
+		@rate => 0.85;
+		@cityDefinition => undefined;
+	];
+];
