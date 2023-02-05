@@ -50,12 +50,12 @@ lkon.parse(
 ```
 
 # Remember
-* Every line except the ones ending with `[` must end with `;`;
-* Every key in objects must start with `@`;
+* Each line (except the ones ending with `[`) must end with `;`;
+* Each object keys must start with `@`;
 * An assignment mark is `=>`.
-* `@*` key is used to define list item;
-* `@<key here>` is used to define an assoc list item;
-* True && False are case sensitive and must start with uppercase letter;
+* If Object contains data beginning with `@*`, then the Object is an Array;
+* If Object contains data beggining with `@<key>`, then the Object is an associative object;
+* `True` and `False` values are case sensitive and must start with uppercase letter;
 * You can write your own comments by starting line with `#`, they will be ignored;
 
 # LKON supports these types of data:
