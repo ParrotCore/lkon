@@ -16,7 +16,7 @@ lkon.stringify({
 	email: undefined,
 	access: .9
 }) /*Expecting:
-[
+`[
 	@username => "Lena Krukov";
 	@age => 1.9e+28;
 	@eyes => [
@@ -25,7 +25,7 @@ lkon.stringify({
 	];
 	@email => undefined;
 	@access => 0.9;
-];*/
+];`*/
 
 lkon.parse(
 `[
@@ -50,22 +50,22 @@ lkon.parse(
 ```
 
 # Remember
-> Every line except the ones ending with `[` must end with `;`;
-> Every key in objects must start with `@`;
-> An assignment mark is `=>`.
-> `@*` key is used to define list item;
-> `@<key here>` is used to define an assoc list item;
-> True && False are case sensitive and must start with uppercase letter;
-> You can write your own comments by starting line with `#`, they will be ignored;
+* Every line except the ones ending with `[` must end with `;`;
+* Every key in objects must start with `@`;
+* An assignment mark is `=>`.
+* `@*` key is used to define list item;
+* `@<key here>` is used to define an assoc list item;
+* True && False are case sensitive and must start with uppercase letter;
+* You can write your own comments by starting line with `#`, they will be ignored;
 
 # LKON supports these types of data:
-> undefined
-> Boolean
-> null
-> Infinity
-> Number
-> String
-> NaN
+* undefined
+* Boolean
+* null
+* Infinity
+* Number
+* String
+* NaN
 
 # Coming soon:
-> RegExp
+* RegExp
