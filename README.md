@@ -42,11 +42,23 @@ lkon.parse(
 	{
 		token: "xxx.xxx:zzz.zzz",
 		session_start: 1633998600000,
-		test: /^user[0-9]$/g
+		test: /^user[0-9]$/g,
 		cookies: {
 			username: "User1",
 			avatar: "/0x08764/2021-10-12-12.00.00.jpg"
 		}
+	}
+*/
+
+lkon.parse(
+`[
+	@publicKey => "./private/public.key"utf8;
+	@privateKey => "./private/private.key"utf8;
+];`
+) /* Expecting
+	{
+		publicKey: your-public-key-here,
+		privateKey: your-private-key-here
 	}
 */
 ```
@@ -60,6 +72,7 @@ lkon.parse(
 * `True` and `False` values are case sensitive and must start with uppercase letter;
 * You can write your own comments by starting line with `#`, they will be ignored;
 * You can set RegExp values by putting them into / /, optionally you can add some flags, e.g. /^h(e)+ll(o)+$/i.
+* Now you can read files easily by putting their paths in " " and adding flags, which are the encoding. E.g "/path/to/file.lkon"utf8!
 
 # LKON supports these types of data:
 * undefined
@@ -70,6 +83,4 @@ lkon.parse(
 * String
 * NaN
 * RegExp
-
-# Coming soon:
 * Files
