@@ -32,6 +32,7 @@ lkon.parse(
 	#This user is cool
 	@token => "xxx.xxx:zzz.zzz";
 	@session_start => 1633998600000;
+	@test => /^User[0-9]+$/g;
 	@cookies => [
 		@username => "User1";
 		@avatar => "/0x08764/2021-10-12-12.00.000.jpg";
@@ -40,10 +41,11 @@ lkon.parse(
 ) /*Expecting:
 	{
 		token: "xxx.xxx:zzz.zzz",
-		session_start: 1633998600000;
+		session_start: 1633998600000,
+		test: /^user[0-9]$/g
 		cookies: {
 			username: "User1",
-			avatar: "/0x08764/2021-10-12-12.00.00.jpg";
+			avatar: "/0x08764/2021-10-12-12.00.00.jpg"
 		}
 	}
 */
@@ -57,6 +59,7 @@ lkon.parse(
 * If Object contains data beggining with `@<key>`, then the Object is an associative object;
 * `True` and `False` values are case sensitive and must start with uppercase letter;
 * You can write your own comments by starting line with `#`, they will be ignored;
+* You can set RegExp values by putting them into / /, optionally you can add some flags, e.g. /^h(e)+ll(o)+$/i.
 
 # LKON supports these types of data:
 * undefined
@@ -66,6 +69,7 @@ lkon.parse(
 * Number
 * String
 * NaN
+* RegExp
 
 # Coming soon:
-* RegExp
+* Files

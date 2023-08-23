@@ -1,8 +1,9 @@
 const lkon = require('./lkon.js'),
-	  {readFileSync, writeFileSync } = require('fs'),
+	  { writeFileSync } = require('fs'),
 	  object = {
 		city: "Moscow",
 		population: 17200000,
+		alphabetRegexp: /^[\p{Script=Cyrillic}\p{P}]+$/u,
 		monuments: [
 			"St. Basil's Cathedral",
 			"Kremlin",

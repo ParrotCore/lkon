@@ -1,5 +1,4 @@
 /* TO DO:
-    - RegExp
     - Optimalization
 */
 
@@ -16,11 +15,12 @@ function lineMaker(key, value, iteration){
           tabs = writeTabs(iteration);
 
     line.push(`${tabs}@${key} => `);
-    if(typeof value == 'object' && value !== null){
+    if(typeof value == 'object' && value !== null && !(value instanceof RegExp)){
         line[0] += '[';
         for(let k of Object.keys(value)) line.push(lineMaker(Array.isArray(value) ? '*' : k, value[k], iteration+1));
         line.push(tabs + '];')
     }
+    else if(value instanceof RegExp) line[0] += `${value.toString()};`;
     else if(typeof value == 'string') line[0] += `"${value.replace(/"/g, '\\"')}";`
     else line[0] += (typeof value == 'boolean' ? value.toString().substring(0,1).toUpperCase() + value.toString().substring(1) : value) + ';';
     return line.join("\n");
@@ -48,7 +48,7 @@ function readLines(lines, parent){
             return parent;
         }
         if(line[0] == '*' && !Array.isArray(parent)){
-            if(Object.keys(parent).length > 0) throw SyntaxError("Unexpected '*' token at line " + (iterator+1));
+            if(Object.keys(parent).length > 0) throw SyntaxError("Unexpected '*' key at line " + (iterator+1));
             parent = [];
         }
         val = line[1];
@@ -56,6 +56,11 @@ function readLines(lines, parent){
             iterator++;
             val = readLines(lines,{})
             iterator--;
+        }
+        else if(/\/(.+)\/[a-z]*/g.test(val))
+        {
+            let [, pattern, flag] = val.match(/\/(.+)\/([a-z]*)/);
+            val = new RegExp(pattern.replace(/\//g, "\\/"), flag);
         }
         else if(/"(.)*"/.test(val)) val = val.substring(1, val.length-1);
         else if(!isNaN(val)) val = Number(val);
@@ -77,11 +82,11 @@ module.exports.parse = function lkonParse(lkonData){
     if(typeof lkonData != 'string') throw TypeError("'lkonData' parameter must be of type string.");
     if(!/^\[|\](?:\;)?'$/.test(lkonData)) throw SyntaxError("All the data in LKON must be closed in [].")
     iterator = 0;
-    let lines = lkonData.replace(/[\r]|[\t]+/g, '').split(/\n/).filter(el => !/^\#/.test(el));
+    let lines = lkonData.replace(/\r|\t/g, '').split(/\n/).filter(el => !/^\#/.test(el));
     for(let i = 1; i < lines.length-1; i++){
         const line = lines[i];
         if(i == 1 && line.startsWith("*")) res = [];
-        if(!/^(\[|\]\;|@(\*|[A-Z]([0-Z|\_]+))( )*\=\>( )*(\[|[A-Z]+\;|(?:\-)Infinity?|\"(.)*\"\;|(?:\-)?[0-9]+(?:\.[0-9]+)?\;|(?:\-)?[0-9]+(?:\.[0-9]+)?e\+[0-9]+\;|(?:\-)?0x[0-F]+\;|\.[0-9]+\;))$/i.test(line)) {
+        if(!/^(\[|\]\;|@(\*|[A-Z]([0-Z|\_]+))( )*\=\>( )*(\[|[A-Z]+\;|(?:\-)Infinity?|\/(.+)\/[a-z]*\;|\"(.)*\"\;|(?:\-)?[0-9]+(?:\.[0-9]+)?\;|(?:\-)?[0-9]+(?:\.[0-9]+)?e\+[0-9]+\;|(?:\-)?0x[0-F]+\;|\.[0-9]+\;))$/i.test(line)) {
             if(!/\;$/.test(line)) throw SyntaxError("Unexpected token '" + line[line.length-1] + "', expecting ';'\nAt line " + (Number(i)+1) + '\n' + line);
             throw SyntaxError("Something is wrong with your LKON syntax at line: " + (Number(i)+1) + "\n" + line);
         }
