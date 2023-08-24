@@ -1,6 +1,7 @@
 /* TO DO:
     - Optimalization
 */
+
 const {readFileSync, existsSync} = require("node:fs");
 
 
@@ -10,7 +11,27 @@ class FileString extends String {
     constructor(content, path)
     {
         super(content);
-        this.path = path;
+        this.path = `"${path[0]}"${path[1]}`;
+    }
+}
+
+class FileBinary extends Uint8Array {
+    constructor(content,path)
+    {
+        super(content)
+        this.path = `"${path[0]}"${path[1]}`;
+    }
+
+    toString(encoding)
+    {
+        if(encoding && !Buffer.isEncoding(encoding)) throw Error(`Cannot recognize ${encoding} as encoding.`)
+        return new TextDecoder(encoding).decode(this);
+    }
+
+    toBuffer(encoding)
+    {
+        if(encoding && !Buffer.isEncoding(encoding)) throw Error(`Cannot recognize ${encoding} as encoding.`)
+        return Buffer.from(this.toString(encoding || undefined), encoding || undefined);
     }
 }
 
@@ -25,13 +46,17 @@ function lineMaker(key, value, iteration){
           tabs = writeTabs(iteration);
 
     line.push(`${tabs}@${key} => `);
-    if(typeof value == 'object' && value !== null && !(value instanceof RegExp || value instanceof FileString)){
+    if(typeof value == 'object' && value !== null && !(value instanceof RegExp || value instanceof FileString || value instanceof FileBinary)){
         line[0] += '[';
         for(let k of Object.keys(value)) line.push(lineMaker(Array.isArray(value) ? '*' : k, value[k], iteration+1));
         line.push(tabs + '];')
     }
     else if(value instanceof RegExp) line[0] += `${value.toString()};`;
-    else if(value instanceof FileString) line[0] += `${value.path};`
+    else if(value instanceof FileString || value instanceof FileBinary)
+    {
+        console.log(value.path);
+        line[0] += `${value.path};`
+    }
     else if(typeof value == 'string') line[0] += `"${value.replace(/"/g, '\\"')}";`
     else line[0] += (typeof value == 'boolean' ? value.toString().substring(0,1).toUpperCase() + value.toString().substring(1) : value) + ';';
     return line.join("\n");
@@ -41,7 +66,7 @@ function lineMaker(key, value, iteration){
  * 
  * @param {Object} jsonData 
  */
-module.exports.stringify = function lkonStringify(jsonData){
+function lkonStringify(jsonData){
     if(!jsonData || jsonData == null) throw Error("'jsonData' parameter was not given.");
 	if(typeof jsonData !== 'object' || jsonData == null) throw TypeError("'jsonData' parameter must be type of Object");
     res = ["["];
@@ -79,8 +104,12 @@ function readLines(lines, parent){
                 content;
             
             if(!existsSync(path)) throw Error(`No such file or directory "${path}", line: ${iterator+1}.`);
-            if(!Buffer.isEncoding(encoding)) throw Error(`Cannot recognize "${encoding}" as encoding, line: ${iterator+1}.`);
-            val = new FileString(readFileSync(path, encoding), path)
+            if(!Buffer.isEncoding(encoding) && encoding != 'bin') throw Error(`Cannot recognize "${encoding}" as encoding, line: ${iterator+1}.`);
+            
+            if(encoding == 'bin')
+                val = new FileBinary(readFileSync(path), [path,encoding]);
+            else
+                val = new FileString(readFileSync(path, encoding), [path,encoding])
         }
         else if(/"(.)*"/.test(val)) val = val.substring(1, val.length-1);
         else if(!isNaN(val)) val = Number(val);
@@ -97,7 +126,7 @@ function readLines(lines, parent){
  * 
  * @param {string} lkonData 
  */
-module.exports.parse = function lkonParse(lkonData){
+function lkonParse(lkonData){
     if(!lkonData) throw Error("'lkonData' parameter was not given.");
     if(typeof lkonData != 'string') throw TypeError("'lkonData' parameter must be of type string.");
     if(!/^\[|\](?:\;)?'$/.test(lkonData)) throw SyntaxError("All the data in LKON must be closed in [].")
@@ -114,3 +143,42 @@ module.exports.parse = function lkonParse(lkonData){
     };
     return readLines(lines.slice(1, lines.length-1), {});
 }
+
+/**
+ * 
+ * @param {Object} options - Options you want to init.
+ * @param {Boolean} options.allowRequire - Set to true, if you want to require("files.lkon"), just like json.
+ * @param {Boolean} options.allowGlobal - Set to true, if you want to add global object LKON with parse, and stringify method.
+ */
+
+function init({allowRequire, allowGlobal})
+{
+    allowRequire = allowRequire ?? false;
+    allowGlobal = allowGlobal ?? false;
+
+    if(allowRequire)
+        require.extensions['.lkon'] = (mod,filename) => {
+            try
+            {
+                const content = readFileSync(filename, 'utf8'),
+                    parsedData = lkonParse(content);
+                mod.exports = parsedData;
+            }
+            catch(error)
+            {
+                throw new Error(`Error loading ${filename}: ${error.message}`)
+            }
+        }
+    if(allowGlobal)
+        global.LKON = {
+            parse:lkonParse,
+            stringify:lkonStringify
+        }
+    return {
+        parse:lkonParse,
+        stringify:lkonStringify,
+        version:require("./package.json").version
+    }
+}
+
+module.exports = init;

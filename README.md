@@ -4,7 +4,7 @@ As I can see you probably decided to give it a try... So I'm glad.
 # How to use it?
 Using this module is very simple:
 ```js
-const lkon = require('lkon');
+const lkon = require('lkon')();
 
 lkon.stringify({
 	username: "Lena Krukov",
@@ -64,6 +64,9 @@ lkon.parse(
 ```
 
 # Remember
+* Before you use it, you need to init this by require("lkon")({allowGlobal: true|false, allowRequire: true|false});
+- If you set allowGlobal to true, LKON global object will be created.
+- If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
 * Each line (except the ones ending with `[`) must end with `;`;
 * Each object keys must start with `@`;
 * An assignment mark is `=>`.
@@ -71,8 +74,8 @@ lkon.parse(
 * If Object contains data beggining with `@<key>`, then the Object is an associative object;
 * `True` and `False` values are case sensitive and must start with uppercase letter;
 * You can write your own comments by starting line with `#`, they will be ignored;
-* You can set RegExp values by putting them into / /, optionally you can add some flags, e.g. /^h(e)+ll(o)+$/i.
-* Now you can read files easily by putting their paths in " " and adding flags, which are the encoding. E.g "/path/to/file.lkon"utf8!
+* You can set RegExp values by putting them into `/ /`, optionally you can add some flags, e.g. `/^h(e)+ll(o)+$/i`.
+* Now you can read files easily by putting their paths in `" "` and adding flags, which are encodings. E.g `"/path/to/file.lkon"utf8`, you can also set flag to `bin`, e.g. `"/path/to/file"bin`, the output will be `Uint8Array` with `toString(encoding?)` and `toBuffer(encoding?)` methods!
 
 # LKON supports these types of data:
 * undefined

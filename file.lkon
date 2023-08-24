@@ -2,6 +2,7 @@
 	@city => "Moscow";
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
+	@keywords => "./keywords.txt"utf8;
 	@monuments => [
 		@* => "St. Basil's Cathedral";
 		@* => "Kremlin";
