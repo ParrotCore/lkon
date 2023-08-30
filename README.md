@@ -1,89 +1,147 @@
-# Hello!
-As I can see you probably decided to give it a try... So I'm glad.
+# Hello Everyone!
+I'm glad to see all these downloads in statistics.
+Here I come with some new functionalities for LKON
+- ParrotCore, Language for Konfiguration Notation's Author
+
+# Idea
+Every project starts with just a simple idea!
+I came up with an idea to create easy-readable configuration language, with special abilities, so there it is!
+
+# Coming soon
+New extension for Visual Studio Code will be available soon to let you all read colourized syntax of LKON!
+We'll contain here more information about it as soon as possible!
+
+# LKON Supports these types of data:
+- Files - `"./path/to/file"encoding`;
+- RegExps - `/your_expression_here/flags`;
+- String - `"string"`;
+- undefined - `undefined`;
+- Boolean - `True` or `False`;
+- null - `null`;
+- Infinity - `Infinity`;
+- Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
+- NaN - `NaN`;
+
+# Remember
+- Before you use it, you need to init this by require("lkon")({allowGlobal: true|false, allowRequire: true|false});
+* If you set allowGlobal to true, LKON global object will be created.
+* If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
+- Every line (except empty ones, and the ones ending with `[`) of lkon code must end with `;`.
+- Object keys must be set with `@` at the beggining;
+- An assigment mark is `=>`;
+- Object is set an Array if it includes data with `*` keys;
+- You can use single-line comments by following the text with `#`;
+- You can read files with `bin` encoding, the output will be a Buffer;
+- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file, but remember variables cannot be objects;
+- You can also import another lkon file and use its content by writing `import "./path/to/file.lkon"utf8 as key;`;
+- Now you can use one variable in many places using `this` object which represents current files parsed content!
 
 # How to use it?
 Using this module is very simple:
 ```js
 const lkon = require('lkon')();
 
-lkon.stringify({
-	username: "Lena Krukov",
-	age: 19e+27,
-	eyes: [
-		0x2345FF,
-		0x5432FF
-	],
-	email: undefined,
-	access: .9
-}) /*Expecting:
-`[
-	@username => "Lena Krukov";
-	@age => 1.9e+28;
-	@eyes => [
-		@* => 2311679;
-		@* => 5518079;
-	];
-	@email => undefined;
-	@access => 0.9;
-];`*/
-
 lkon.parse(
-`[
-	#This user is cool
-	@token => "xxx.xxx:zzz.zzz";
-	@session_start => 1633998600000;
-	@test => /^User[0-9]+$/g;
-	@cookies => [
-		@username => "User1";
-		@avatar => "/0x08764/2021-10-12-12.00.000.jpg";
-	];
-];`
-) /*Expecting:
+`
+use "./private.key"bin as privateKey;
+use "./public.key"bin as publicKey;
+use "v2.0.0" as version;
+import "./database.lkon"utf8 as db;
+
+
+[
+  @version => version;
+  @admin => [
+    @username => "root";
+    @password => "Q@wertyuiop";
+  ];
+  @keys => [
+    @public => publicKey;
+    @private => privateKey;
+  ];
+  @database => [
+    @host => db.host;
+    @port => db.port;
+    @username => this.admin.username;
+    @password => this.admin.password;
+  ];
+  @localhostDirectory => "./views";
+  @maxPasswordLength => 128;
+  @passwordRegex => /[^a-zA-Z0-9\!@#$%\^&\*\(\)\{\}\[\];"'\/\\\.,]/g;
+];
+`
+)
+/* Expecting:
 	{
-		token: "xxx.xxx:zzz.zzz",
-		session_start: 1633998600000,
-		test: /^user[0-9]$/g,
-		cookies: {
-			username: "User1",
-			avatar: "/0x08764/2021-10-12-12.00.00.jpg"
-		}
+		version: "v2.0.0",
+		admin: {
+			username: "root",
+			password: "Q@wertyuiop"
+		},
+		keys: {
+			public: <Buffer A7 B2 C7 ...>,
+			private: <Buffer C3 A1 B8 ...>
+		},
+		database: {
+			host: "127.0.0.1",
+			port: 80,
+			username: "root",
+			password: "Q@wertyuiop"
+		},
+		localhostDirectory: "./views",
+		maxPasswordLength: 128,
+		passwordRegex: /[^a-zA-Z0-9\!@#$%\^&\*\(\)\{\}\[\];"'\/\\\.,]/g
 	}
 */
 
-lkon.parse(
-`[
-	@publicKey => "./private/public.key"utf8;
-	@privateKey => "./private/private.key"utf8;
-];`
-) /* Expecting
-	{
-		publicKey: your-public-key-here,
-		privateKey: your-private-key-here
-	}
+lkon.stringify(
+	[
+		{
+			username: "JohnDoe",
+			age: 24,
+			email: "john.doe@example.com",
+			password: "password",
+			favRegexp: /[abc]+/
+		},
+		{
+			username: "FooBar",
+			age: 20,
+			email: "foo.bar@example.com",
+			password: "password",
+			favRegexp: /[def]+/
+		},
+		{
+			username: "CatSamson",
+			age: 21,
+			email: "cat.samson@example.com",
+			password: "password",
+			favRegexp: /[ghi]+/
+		}
+	]
+)
+/*Expecting:
+	[
+		@* => [
+			@username => "JohnDoe";
+			@age => 24;
+			@email => "john.doe@example.com";
+			@password => "password";
+			@favRegexp => /[abc]+/;
+		];
+		@* => [
+			@username => "FooBar";
+			@age => 20;
+			@email => "foo.bar@example.com";
+			@password => "password";
+			@favRegexp => /[def]+/;
+		];
+		@* => [
+			@username => "CatSamson";
+			@age => 21;
+			@email => "cat.samson@example.com";
+			@password => "password";
+			@favRegexp => /[ghi]+/;
+		];
+	]
 */
 ```
-
-# Remember
-* Before you use it, you need to init this by require("lkon")({allowGlobal: true|false, allowRequire: true|false});
-- If you set allowGlobal to true, LKON global object will be created.
-- If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
-* Each line (except the ones ending with `[`) must end with `;`;
-* Each object keys must start with `@`;
-* An assignment mark is `=>`.
-* If Object contains data beginning with `@*`, then the Object is an Array;
-* If Object contains data beggining with `@<key>`, then the Object is an associative object;
-* `True` and `False` values are case sensitive and must start with uppercase letter;
-* You can write your own comments by starting line with `#`, they will be ignored;
-* You can set RegExp values by putting them into `/ /`, optionally you can add some flags, e.g. `/^h(e)+ll(o)+$/i`.
-* Now you can read files easily by putting their paths in `" "` and adding flags, which are encodings. E.g `"/path/to/file.lkon"utf8`, you can also set flag to `bin`, e.g. `"/path/to/file"bin`, the output will be `Uint8Array` with `toString(encoding?)` and `toBuffer(encoding?)` methods!
-
-# LKON supports these types of data:
-* undefined
-* Boolean
-* null
-* Infinity
-* Number
-* String
-* NaN
-* RegExp
-* Files

@@ -1,6 +1,6 @@
 {
   "name": "lkon",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "LKON is experimental type of Object Notation implemented as an open-source library for JS.",
   "main": "lkon.js",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "keywords": [
     "lkon",
+    "language for konfiguration notation",
     "object notation"
   ],
   "author": "parrotcore",

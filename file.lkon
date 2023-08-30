@@ -1,15 +1,19 @@
+use 1147 as firstMentioned;
+use "./keywords.txt"utf8 as keywords;
+
 [
+	#Best city i have ever seen.
 	@city => "Moscow";
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
-	@keywords => "./keywords.txt"utf8;
+	@keywords => keywords;
 	@monuments => [
 		@* => "St. Basil's Cathedral";
 		@* => "Kremlin";
 		@* => "Red Square";
 	];
 	@dates => [
-		@first_mentioned => 1147;
+		@first_mentioned => firstMentioned;
 	];
 	@government => [
 		@body => [
@@ -24,6 +28,7 @@
 			@* => null;
 		];
 	];
+	@mayor => this.government.mayors.0.surname;
 	@metro => [
 		@operator => "Moskovskiy Metropoliten";
 		@lines => 15;
