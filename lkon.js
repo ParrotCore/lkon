@@ -10,8 +10,17 @@ const parse = require("./parser.js"),
  * @param {Boolean} initOptions.allowGlobal - Set to true if you want to have global LKON Object with parse, and stringify methods. 
  * @returns {Object} - LKON Object with parse and stringify methods, and also version string.
  */
-function lkonInit({allowRequire, allowGlobal})
+function lkonInit(initOptions)
 {
+    try
+    {
+        var {allowRequire, allowGlobal} = initOptions;
+    }
+    catch(err){
+        var allowRequire = false,
+            allowGlobal = false;
+    }
+
     if(allowRequire)
         require.extensions['.lkon'] = (mod,filename) => {
             try

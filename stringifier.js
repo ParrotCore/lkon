@@ -55,7 +55,6 @@ function lkonStringify(json)
     output.push('[');    
     writeBody(json, output, 1);
     output.push('];');
-    console.log(output);
     return output.join("\n");
 }
 
