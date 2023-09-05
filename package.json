@@ -1,7 +1,7 @@
 {
   "name": "lkon",
-  "version": "2.1.1",
-  "description": "LKON is experimental type of Object Notation implemented as an open-source library for JS.",
+  "version": "2.1.3",
+  "description": "LKON is type of Object Notation implemented as an open-source library for JS.",
   "main": "lkon.js",
   "scripts": {
     "test": "node ./test.js"

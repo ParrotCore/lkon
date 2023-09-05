@@ -10,7 +10,7 @@ console.log(required,"\nParsing time:")
 console.time("parsing");
 
 const parsed = LKON.parse(
-`[
+`[ 
 	@username => "Lena Krukov";
 	@age => 1.9e+28;
 	@eyes => [

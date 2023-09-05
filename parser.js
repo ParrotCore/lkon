@@ -24,18 +24,20 @@ const
     },
     possibleValuesKeys = Object.keys(possibleValues),
     errors = {
-        missingSemicolon: (line, position) => new SyntaxError(`Missing ';' at ${Number(line)+1}:${position}`),
-        missingKeyPrefix: (line, position) => new SyntaxError(`Missing key prefix '@' at ${Number(line)+1}:${position}`),
-        missingAssignmentMark: (line, position) => new SyntaxError(`Missing assignment mark '=>' at ${Number(line)+1}:${position}`),
-        wrongAssignmentMark: (line, position, name) => new SyntaxError(`Wrong assignment mark '${name}' at ${Number(line)+1}:${position}`),
-        unexpectedToken: (line, position, token) => new SyntaxError(`Unexpected token '${token}' at ${Number(line)+1}:${position}`),
-        wrongSyntax: (line, position) => new SyntaxError(`Something is wrong with syntax at ${Number(line)+1}:${position}`),
-        unexpectedValue: (line, position, value) => new TypeError(`Unexpected '${value}' value at ${Number(line)+1}:${position}`),
-        unexpectedEnd: (line, position) => new SyntaxError(`Unexpected end of LKON at ${Number(line)+1}:${position}`),
-        keywordError: (line, position, name) => new SyntaxError(`Name '${name}' is reserved for keywords at ${Number(line)+1}:${position}`),
-        keyError: (line, position, name) => new TypeError(`Key name '${name}' is reserved for LKON ${name.replace(/^__/, '')} object at ${Number(line)+1}:${position}.`),
-        reservedProperty: (line, position, name) => new TypeError(`Key name '${name}' is reserved for LKON data-${name.replace(/^__/, '')} property at ${Number(line)+1}:${position}`),
-        variablesConflict: (line, position, name, type) => new Error(`'${name}' key has already been reserved for ${["variable","import"][type]} at ${Number(line)+1}:${position}`)
+        missingSemicolon: (line, position) => new SyntaxError(`Missing ';' at ${line+1}:${position}`),
+        missingKeyPrefix: (line, position) => new SyntaxError(`Missing key prefix '@' at ${line+1}:${position}`),
+        missingAssignmentMark: (line, position) => new SyntaxError(`Missing assignment mark '=>' at ${line+1}:${position}`),
+        wrongAssignmentMark: (line, position, name) => new SyntaxError(`Wrong assignment mark '${name}' at ${line+1}:${position}`),
+        unexpectedToken: (line, position, token) => new SyntaxError(`Unexpected token '${token}' at ${line+1}:${position}`),
+        wrongSyntax: (line, position) => new SyntaxError(`Something is wrong with syntax at ${line+1}:${position}`),
+        unexpectedValue: (line, position, value) => new TypeError(`Unexpected '${value}' value at ${line+1}:${position}`),
+        unexpectedEnd: (line, position) => new SyntaxError(`Unexpected end of LKON at ${line+1}:${position}`),
+        keywordError: (line, position, name) => new SyntaxError(`Name '${name}' is reserved for keywords at ${line+1}:${position}`),
+        keyError: (line, position, name) => new TypeError(`Key name '${name}' is reserved for LKON ${name.replace(/^__/, '')} object at ${line+1}:${position}.`),
+        reservedProperty: (line, position, name) => new TypeError(`Key name '${name}' is reserved for LKON data-${name.replace(/^__/, '')} property at ${line+1}:${position}`),
+        variablesConflict: (line, position, name, type) => new Error(`'${name}' key has already been reserved for ${["variable","import"][type]} at ${line+1}:${position}`),
+        headerVariableInBody: (line, position) => new SyntaxError(`Cannot use 'use' statement inside of object body, at: ${line+1}:${position}`),
+        importInBody: (line, position) => new SyntaxError(`Cannot use 'import' statement inside of object body, at: ${line+1}:${position}`)
     },
     {readFileSync, existsSync} = require("node:fs"),
     {inspect} = require('node:util');
@@ -214,6 +216,8 @@ function lkonParse(lkonData)
                 if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
                 if(!regExps.lineTest.test(lines[i]))
                 {
+                    if(regExps.headerImport.test(lines[i])) throw errors.importInBody(i, lines[i].indexOf(noWhiteSpaces[0]));
+                    if(regExps.headerVariable.test(lines[i])) throw errors.headerVariableInBody(i, lines[i].indexOf(noWhiteSpaces[0]));
                     if(!noWhiteSpaces.endsWith(';') && !noWhiteSpaces.endsWith('[')) throw errors.missingSemicolon(i, lines[i].length)
                     if(!noWhiteSpaces.startsWith('@') && !noWhiteSpaces == '];') throw errors.missingKeyPrefix(i, lines[i].indexOf(noWhiteSpaces[0]));
                     if(!noWhiteSpaces.includes('=>') && noWhiteSpaces != '];')

@@ -23,18 +23,18 @@ We'll contain here more information about it as soon as possible!
 - NaN - `NaN`;
 
 # Remember
-- Before you use it, you need to init this by require("lkon")({allowGlobal: true|false, allowRequire: true|false});
+- Before you use it, you need to init this using require("lkon")({allowGlobal: true|false, allowRequire: true|false});
 * If you set allowGlobal to true, LKON global object will be created.
 * If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
 - Every line (except empty ones, and the ones ending with `[`) of lkon code must end with `;`.
-- Object keys must be set with `@` at the beggining;
+- Object keys must be followed by `@`;
 - An assigment mark is `=>`;
-- Object is set an Array if it includes data with `*` keys;
+- Object is set to an Array when it includes lines set to `*` key name;
 - You can use single-line comments by following the text with `#`;
 - You can read files with `bin` encoding, the output will be a Buffer;
-- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file, but remember variables cannot be objects;
-- You can also import another lkon file and use its content by writing `import "./path/to/file.lkon"utf8 as key;`;
-- Now you can use one variable in many places using `this` object which represents current files parsed content!
+- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header), but remember variables cannot be objects;
+- You can also import another lkon file and use its data by writing `import "./path/to/file.lkon"utf8 as key;`;
+- Now you can use one variable in many places using `this` keyword representing current files' parsed content!
 
 # How to use it?
 Using this module is very simple:
