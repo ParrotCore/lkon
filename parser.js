@@ -171,8 +171,14 @@ function lkonParse(lkonData)
 {
     const lines = lkonData.replace(/\r|#(.)*\n/g, '').split(/\n/)
 
-    let startMain,
-        endMain,
+    /* Mode *******
+    * 0 - Header; *
+    * 1 - Body;   *
+    * 2 - End;    *
+    **************/
+
+    let
+        mode = 0,
         variables = {},
         variablesKeys,
         imports = {},
@@ -181,94 +187,106 @@ function lkonParse(lkonData)
         path = [];
     for(let i = 0; i < lines.length; i++) if(lines[i])
     {
-        const noWhiteSpaces = lines[i].replace(/[\t ]+/g, '');
-        if(!startMain && !['[', '[];'].includes(noWhiteSpaces) && lines[i].length)
+        const clearLine = lines[i].replace(/^[\t ]+|[\t ]+$/g, '');
+        switch(mode)
         {
-            if(regExps.headerVariable.test(lines[i])) getVariable(lines[i], i, variables, imports);
-            else if(regExps.headerImport.test(lines[i])) getImport(lines[i], i, imports, variables);
-            else if(lines[i].replace(/[\t ]/g, ''))
+            case 0:
             {
-                if(!lines[i].endsWith(';')) throw errors.missingSemicolon(i, lines[i].length);
-                else throw errors.wrongSyntax(i, lines[i].indexOf(noWhiteSpaces[0]))
-            }
-        }
-        else if(!startMain && noWhiteSpaces == '[];')
-        {
-            startMain = true;
-            endMain = true;
-        }
-        else if(!startMain && noWhiteSpaces == '[')
-        {
-            if(lines[i+1]?.match(regExps.lineTest)?.groups?.key == '*') output = [];
-            startMain = true;
-        }
-        else if(startMain)
-        {
-            if(endMain && noWhiteSpaces != '') throw errors.unexpectedEnd(i, lines[i].indexOf(']'));
-            else if(lines[i].replace(/[\t ]/g, '') == '];')
-            {
-                if(!path.length) endMain = true;
-                else path.pop();
-            }
-            else if(lines[i].replace(/[\t ]/g, '') != '')
-            {
-                if(!variablesKeys) variables ? variablesKeys = Object.keys(variables) : [];
-                if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
-                if(!regExps.lineTest.test(lines[i]))
+                if(clearLine == '[')
                 {
-                    if(regExps.headerImport.test(lines[i])) throw errors.importInBody(i, lines[i].indexOf(noWhiteSpaces[0]));
-                    if(regExps.headerVariable.test(lines[i])) throw errors.headerVariableInBody(i, lines[i].indexOf(noWhiteSpaces[0]));
-                    if(!noWhiteSpaces.endsWith(';') && !noWhiteSpaces.endsWith('[')) throw errors.missingSemicolon(i, lines[i].length)
-                    if(!noWhiteSpaces.startsWith('@') && !noWhiteSpaces == '];') throw errors.missingKeyPrefix(i, lines[i].indexOf(noWhiteSpaces[0]));
-                    if(!noWhiteSpaces.includes('=>') && noWhiteSpaces != '];')
-                    {
-                        if(regExps.assignmentMark.test(lines[i])) {
-                            let {mark} = lines[i].match(regExps.assignmentMark).groups;
-                            throw errors.wrongAssignmentMark(i, lines[i].indexOf(mark), mark);
-                        }
-                        else throw errors.missingAssignmentMark(i, lines[i].indexOf(noWhiteSpaces[0]))
-                    }
-                    throw SyntaxError(`Something is wrong with LKON Syntax at ${i}:${lines[i].length}`)
-                };
-                
-                let {key, value} = lines[i].match(regExps.lineTest).groups,
-                    oldValue = value;
-                if(value.endsWith(";")) value = value.substring(0, value.length-1);
-
-                if(regExps.stringTest.test(value)) value = parseString(value);
-                else if(regExps.numberTest.test(value)) value = parseNumber(value);
-                else if(possibleValuesKeys.includes(value)) value = parseMore(value);
-                else if(regExps.fileTest.test(value)) value = parseFile(value)
-                else if(regExps.regexpTest.test(value)) value = parseRegexp(value);
-                else if(value == '['){
-                    if(lines[i+1]?.match(regExps.lineTest).groups.key == '*')
-                        value = [];
+                    if(lines[i+1]?.match(regExps.lineTest)?.groups?.key == '*') output = [];
+                    mode = 1;
+                }
+                else if(clearLine == '[];') mode = 2;
+                else if(clearLine != '')
+                {
+                    if(regExps.headerVariable.test(lines[i])) getVariable(lines[i], i, variables, imports);
+                    else if(regExps.headerImport.test(lines[i])) getImport(lines[i], i, imports, variables);
                     else
-                        value = {};
-                }
-                else if(value == '[]'){
-                    value = {};
-                }
-                else if(regExps.thisTest.test(value)) value = Object.assign(getThis(output, value, [lines[i], i]), {__path: value, __type: 'this-variable'});
-                else if(variablesKeys.includes(value))
-                {
-                    try {
-                        value = Object.assign(variables[value], {__type: 'variable', __path: value});
-                    }
-                    catch(error)
                     {
-                        value = Object.assign(false, {__type: 'variable', __path: value, __original: inspect(variables[value])});
+                        if(!lines[i].endsWith(';')) throw errors.missingSemicolon(i, lines[i].length);
+                        else throw errors.wrongSyntax(i, lines[i].indexOf(clearLine[0]))
                     }
                 }
-                else if(regExps.importTest.test(value)) value = Object.assign(getImportValue(imports, value, [lines[i], i]), {__path: value, __type: 'import-variable'});
-                else throw errors.unexpectedValue(i, lines[i].indexOf(value), value)
-
-                if(!path.length && regExps.keyTest.test(key)) throw errors.keyError(i, lines[i].indexOf(key), key);
-                if(regExps.reservedProperties.test(key)) throw errors.reservedProperty(i, lines[i].indexOf(key), key);
-                path.push(key)
-                addValue(output, path, value)
-                if(oldValue != '[') path.pop();
             }
+            break;
+            case 1:
+            {
+                if(clearLine == '];')
+                {
+                    if(!path.length) mode = 2;
+                    else path.pop();
+                }
+                else if(clearLine.length)
+                {
+                    if(regExps.lineTest.test(lines[i]))
+                    {
+                        if(!variablesKeys) variables ? variablesKeys = Object.keys(variables) : [];
+                        if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
+                        
+                        
+                        let {key, value} = lines[i].match(regExps.lineTest).groups,
+                            oldValue = value;
+                        if(value.endsWith(";")) value = value.substring(0, value.length-1);
+
+                        if(regExps.stringTest.test(value)) value = parseString(value);
+                        else if(regExps.numberTest.test(value)) value = parseNumber(value);
+                        else if(possibleValuesKeys.includes(value)) value = parseMore(value);
+                        else if(regExps.fileTest.test(value)) value = parseFile(value)
+                        else if(regExps.regexpTest.test(value)) value = parseRegexp(value);
+                        else if(value == '['){
+                            if(lines[i+1]?.match(regExps.lineTest).groups.key == '*')
+                                value = [];
+                            else
+                                value = {};
+                        }
+                        else if(value == '[]'){
+                            value = {};
+                        }
+                        else if(regExps.thisTest.test(value)) value = Object.assign(getThis(output, value, [lines[i], i]), {__path: value, __type: 'this-variable'});
+                        else if(variablesKeys.includes(value))
+                        {
+                            try {
+                                value = Object.assign(variables[value], {__type: 'variable', __path: value});
+                            }
+                            catch(error)
+                            {
+                                value = Object.assign(false, {__type: 'variable', __path: value, __original: inspect(variables[value])});
+                            }
+                        }
+                        else if(regExps.importTest.test(value)) value = Object.assign(getImportValue(imports, value, [lines[i], i]), {__path: value, __type: 'import-variable'});
+                        else throw errors.unexpectedValue(i, lines[i].indexOf(value), value)
+
+                        if(!path.length && regExps.keyTest.test(key)) throw errors.keyError(i, lines[i].indexOf(key), key);
+                        if(regExps.reservedProperties.test(key)) throw errors.reservedProperty(i, lines[i].indexOf(key), key);
+                        path.push(key)
+                        addValue(output, path, value)
+                        if(oldValue != '[') path.pop();
+                    }
+                    else
+                    {
+                        if(regExps.headerImport.test(lines[i])) throw errors.importInBody(i, lines[i].indexOf(clearLine[0]));
+                        if(regExps.headerVariable.test(lines[i])) throw errors.headerVariableInBody(i, lines[i].indexOf(clearLine[0]));
+                        if(!clearLine.endsWith(';') && !clearLine.endsWith('[')) throw errors.missingSemicolon(i, lines[i].length)
+                        if(!clearLine.startsWith('@') && !clearLine == '];') throw errors.missingKeyPrefix(i, lines[i].indexOf(clearLine[0]));
+                        if(!clearLine.includes('=>') && clearLine != '];')
+                        {
+                            if(regExps.assignmentMark.test(lines[i])) {
+                                let {mark} = lines[i].match(regExps.assignmentMark).groups;
+                                throw errors.wrongAssignmentMark(i, lines[i].indexOf(mark), mark);
+                            }
+                            else throw errors.missingAssignmentMark(i, lines[i].indexOf(clearLine[0]))
+                        }
+                        throw SyntaxError(`Something is wrong with LKON Syntax at ${i}:${lines[i].length}`)
+                    };
+                }
+            }
+            break;
+            case 2:
+            {
+                if(clearLine.length) throw errors.unexpectedEnd(i, lines[i].indexOf(clearLine[0]));
+            }
+            break;
         }
     }
     output.__variables = variables;

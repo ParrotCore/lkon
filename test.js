@@ -1,4 +1,4 @@
-require('./lkon.js')({allowRequire:true, allowGlobal:true})
+require('./lkon.js')({allowRequire:true, allowGlobal:true}),
 
 console.log("Requiring time:")
 console.time("requiring");
