@@ -5,6 +5,7 @@ const
         headerVariable: /[\t ]*use( )+(?<value>(.+))( )+as( )+(?<key>(.+))( )*;[\t ]*/i,
         headerImport: /[\t ]*import( )+\"(?<path>(.+))\"(?<encoding>(\w+))( )+as( )+(?<key>(.)+)( )*;[\t ]*/i,
         lineTest: /^[\t ]*@(?<key>(\*|[a-z_][a-z0-9_]*))( )+\=\>( )+(?<value>((.)+;|\[))[\t ]*$/i,
+        lineMultiTest: /([\t ]*@(\*|[a-z_][a-z0-9_]*)( )+\=\>( )+((.)+;|\[)[\t ]*){2,}/i,
         fileTest: /^\"(?<file>(.)+)\"(?<encoding>(\w+))$/,
         stringTest: /^\"(?<string>(.)+)\"$/,
         regexpTest: /\/(?<expression>(.+))\/(?<flags>([a-z]*))/,
@@ -219,8 +220,10 @@ function lkonParse(lkonData)
                 }
                 else if(clearLine.length)
                 {
+                    if(regExps.lineMultiTest.test(lines[i])) throw errors.unexpectedToken(i, clearLine.replace("@", '').indexOf('@'), '@');
                     if(regExps.lineTest.test(lines[i]))
                     {
+                        console.log(regExps.lineMultiTest.test(lines[i]), lines[i]);
                         if(!variablesKeys) variables ? variablesKeys = Object.keys(variables) : [];
                         if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
                         
