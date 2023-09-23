@@ -286,7 +286,6 @@ function lkonParse(lkonData)
             break;
             case 2:
             {
-                console.log(`"${clearLine}"`, clearLine, clearLine.length)
                 if(clearLine.length) throw errors.unexpectedEnd(i, lines[i].indexOf(clearLine[0]));
             }
             break;
