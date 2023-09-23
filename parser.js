@@ -170,7 +170,7 @@ function addValue(obj, path, value)
 */
 function lkonParse(lkonData)
 {
-    const lines = lkonData.replace(/\r|#(.)*\n/g, '').split(/\n/)
+    const lines = lkonData.replace(/\r/g, '').split(/\n/).map(el => el.replace(/#(.)*$/g, ''))
 
     /* Mode *******
     * 0 - Header; *
@@ -223,7 +223,6 @@ function lkonParse(lkonData)
                     if(regExps.lineMultiTest.test(lines[i])) throw errors.unexpectedToken(i, clearLine.replace("@", '').indexOf('@'), '@');
                     if(regExps.lineTest.test(lines[i]))
                     {
-                        console.log(regExps.lineMultiTest.test(lines[i]), lines[i]);
                         if(!variablesKeys) variables ? variablesKeys = Object.keys(variables) : [];
                         if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
                         
@@ -287,6 +286,7 @@ function lkonParse(lkonData)
             break;
             case 2:
             {
+                console.log(`"${clearLine}"`, clearLine, clearLine.length)
                 if(clearLine.length) throw errors.unexpectedEnd(i, lines[i].indexOf(clearLine[0]));
             }
             break;

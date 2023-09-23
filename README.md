@@ -1,15 +1,21 @@
-# Hello Everyone!
-I'm glad to see all these downloads in statistics.
-Here I come with some new functionalities for LKON
-- ParrotCore, Language for Konfiguration Notation's Author
+# About project...
+Language for Konfiguration Object Notation was created to be something brand new, easy human-readable, auto-documented, and easy-changeable.
+LKON lets you use variables and even read other files to access data from them to re-use them.
+This makes configuration-files faster to write, use, and edit.
 
-# Idea
-Every project starts with just a simple idea!
-I came up with an idea to create easy-readable configuration language, with special abilities, so there it is!
+![LKON](./icon.png)
 
-# Coming soon
-New extension for Visual Studio Code will be available soon to let you all read colourized syntax of LKON!
-We'll contain here more information about it as soon as possible!
+---
+
+# Highlighting
+Are you bored and tired of looking at LKON Syntax in the only one color? <br/>
+Well, we have something special for you. <br/>
+Thanks to my friend (**yobonez**) we now have special VSC addon with highlighter for LKON files. <br/>
+The only thing you have to do is download it in VSC marketplace:
+- Name of addon: `LKON Syntax Hightlighting`
+- [GitHub](https://github.com/yobonez/vscode-lkon-highlighting)
+
+---
 
 # LKON Supports these types of data:
 - Files - `"./path/to/file"encoding`;
@@ -21,6 +27,8 @@ We'll contain here more information about it as soon as possible!
 - Infinity - `Infinity`;
 - Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
 - NaN - `NaN`;
+
+---
 
 # Remember
 - Before you use it, you need to init this using require("lkon")({allowGlobal: true|false, allowRequire: true|false});
@@ -35,6 +43,8 @@ We'll contain here more information about it as soon as possible!
 - Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header), but remember variables cannot be objects;
 - You can also import another lkon file and use its data by writing `import "./path/to/file.lkon"utf8 as key;`;
 - Now you can use one variable in many places using `this` keyword representing current files' parsed content!
+
+---
 
 # How to use it?
 Using this module is very simple:

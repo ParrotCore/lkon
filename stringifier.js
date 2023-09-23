@@ -18,7 +18,7 @@ function writeBody(json, out, tabsCount)
         if(json[i]?.__path) str += `${json[i].__path};`;
         else
         {
-            if(typeof json[i] == 'string') str += `"${json[i]}";`;
+            if(typeof json[i] == 'string') str += `"${json[i].replace(/\n/g, "\\n")}";`;
             else if(typeof json[i] == 'number') str += json[i] + ';';
             else if(typeof json[i] == 'boolean') str += inspect(json[i])[0].toUpperCase() + inspect(json[i]).substring(1) + ';';
             else if(json[i] instanceof RegExp) str += json[i].toString() + ';';
