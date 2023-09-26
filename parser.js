@@ -45,7 +45,15 @@ const
 
 function parseString(value)
 {
-    return value.substring(1, value.length-1);
+    let val = value.substring(1, value.length-1).replace(/\\n/g, "\n");
+    for(
+        let [reg, change] of [
+            [/\\n/g, "\n"],
+            [/\\t/g, "\t"],
+            [/\\\"/g, "\""]
+        ]
+    ) val = val.replace(reg, change)
+    return val;
 };
 
 function parseNumber(value)
@@ -128,7 +136,8 @@ function getThis(obj, path, [line, lineNumber])
     if(path.length > 1 && (typeof obj[path[0]] != 'object' || obj[path[0]] == null)) throw Error(`Cannot read property of '${typeof obj}' at ${lineNumber}:${line.indexOf(path[0])}`)
 
     if(path.length > 1) return getThis(obj[path[0]], path.slice(1, path.length), [line, lineNumber]);
-        return obj[path[0]];
+    
+    return obj[path[0]];
 }
 
 function getImportValue(obj, path, [line, lineNumber])
@@ -226,7 +235,6 @@ function lkonParse(lkonData)
                         if(!variablesKeys) variables ? variablesKeys = Object.keys(variables) : [];
                         if(!importsKeys) imports ? importsKeys = Object.keys(imports) : [];
                         
-                        
                         let {key, value} = lines[i].match(regExps.lineTest).groups,
                             oldValue = value;
                         if(value.endsWith(";")) value = value.substring(0, value.length-1);
@@ -248,7 +256,8 @@ function lkonParse(lkonData)
                         else if(regExps.thisTest.test(value)) value = Object.assign(getThis(output, value, [lines[i], i]), {__path: value, __type: 'this-variable'});
                         else if(variablesKeys.includes(value))
                         {
-                            try {
+                            try 
+                            {
                                 value = Object.assign(variables[value], {__type: 'variable', __path: value});
                             }
                             catch(error)

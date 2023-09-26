@@ -152,6 +152,6 @@ lkon.stringify(
 			@password => "password";
 			@favRegexp => /[ghi]+/;
 		];
-	]
+	];
 */
 ```
