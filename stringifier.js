@@ -60,7 +60,7 @@ function lkonStringify(json)
     for(let key in json.__imports)
         output.push(`import ${json.__imports[key].__path} as ${key};`);
     for(let key in json.__variables)
-        output.push(`use ${json.__variables[key]} as ${key};`)
+        output.push(`use ${json.__variables[key]?.__original ?? json.__variables[key]} as ${key};`)
     output.push('[');    
     writeBody(json, output, 1);
     output.push('];');

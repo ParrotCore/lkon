@@ -1,12 +1,13 @@
+import "./cityTypes.lkon"utf8 as cityTypes;
 use 1147 as firstMentioned;
 use "./keywords.txt"utf8 as keywords;
-import "./cityTypes.lkon"utf8 as cityTypes;
+use cityTypes.0 as cityType;
 
 [
 	#Best city i have ever seen.
 	@city => "Moscow";
 	@description => "\"The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
-	@cityType => cityTypes.0;
+	@cityType => cityType;
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
 	@keywords => keywords;

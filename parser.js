@@ -116,10 +116,10 @@ function getVariable(line, lineNumber, variables, imports)
     if(regExps.stringTest.test(value)) value = parseString(value);
     else if(regExps.numberTest.test(value)) value = parseNumber(value);
     else if(possibleValuesKeys.includes(value)) value = parseMore(value);
-    else if(regExps.fileTest.test(value)) value = parseFile(value)
+    else if(regExps.fileTest.test(value)) value = Object.assign(parseFile(value), {__original:value});
     else if(regExps.regexpTest.test(value)) value = parseRegexp(value);
+    else if(regExps.importTest.test(value)) value = Object.assign(getImportValue(imports, value, [line, lineNumber]), {__original:value});
     else throw errors.unexpectedValue(lineNumber, line.indexOf(value), value)
-
     variables[key] = value;
 }
 
