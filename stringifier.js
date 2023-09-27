@@ -20,13 +20,13 @@ function writeBody(json, out, tabsCount)
         {
             if(typeof json[i] == 'string')
             {
-                let str = json[i];
+                let val = json[i];
                 for(let [reg, change] of [
                     [/\n/g, "\\n"],
                     [/\t/g, "\\t"],
                     [/"/g, "\\\""]
-                ]) str = str.replace(reg, change);
-                return `"${str}";`;
+                ]) val = val.replace(reg, change);
+                str += `"${val}";`;
             }
             else if(typeof json[i] == 'number') str += json[i] + ';';
             else if(typeof json[i] == 'boolean') str += inspect(json[i])[0].toUpperCase() + inspect(json[i]).substring(1) + ';';

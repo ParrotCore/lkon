@@ -4,6 +4,7 @@ use "./keywords.txt"utf8 as keywords;
 [
 	#Best city i have ever seen.
 	@city => "Moscow";
+	@description => "\"The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
 	@keywords => keywords;

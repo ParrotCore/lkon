@@ -106,8 +106,7 @@ function getImport(line, lineNumber, imports, variables)
 
 function getVariable(line, lineNumber, variables, imports)
 {
-    let {value, key} = line.match(regExps.headerVariable).groups,
-        original;
+    let {value, key} = line.match(regExps.headerVariable).groups;
     if(Object.keys(imports).includes(key)) throw errors.variablesConflict(lineNumber, line.indexOf(key), key, 1);
     if(regExps.keywordTest.test(key)) throw errors.keywordError(lineNumber, line.indexOf(key), key)
     if(regExps.variableKeyTest.test(key)){
