@@ -1,10 +1,11 @@
 {
   "name": "lkon",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "description": "LKON is type of Object Notation implemented as an open-source library for JS.",
   "main": "lkon.js",
   "scripts": {
-    "test": "node ./test.js"
+    "test": "node ./test.js",
+    "example": "node ./example.js"
   },
   "repository": {
     "type": "git",
@@ -16,6 +17,9 @@
     "object notation",
     "configuration"
   ],
+  "runkit": {
+    "example": "node ./example.js"
+  },
   "author": "parrotcore",
   "license": "MIT",
   "bugs": {
