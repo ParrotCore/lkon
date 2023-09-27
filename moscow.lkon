@@ -1,10 +1,12 @@
 use 1147 as firstMentioned;
 use "./keywords.txt"utf8 as keywords;
+import "./cityTypes.lkon"utf8 as cityTypes;
 
 [
 	#Best city i have ever seen.
 	@city => "Moscow";
 	@description => "\"The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
+	@cityType => cityTypes.0;
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
 	@keywords => keywords;
@@ -38,7 +40,7 @@ use "./keywords.txt"utf8 as keywords;
 		@stations => 247;
 	];
 	@more => [
-		@capitalCity => "Russia";
+		@capitalCityOf => "Russia";
 		@highestTemperature => 38.2;
 		@lowestTemperature => -42.1;
 		@coffeeConsuments => Infinity;

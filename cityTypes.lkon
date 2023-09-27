@@ -1,0 +1,15 @@
+use "capital" as capital;
+use "capital-of-region" as regionalCapital;
+use "important-city" as importantCity;
+use "city" as city;
+use "town" as town;
+use "country" as country;
+
+[
+    @* => capital;
+    @* => regionalCapital;
+    @* => importantCity;
+    @* => city;
+    @* => town;
+    @* => country;
+];

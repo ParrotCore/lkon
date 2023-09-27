@@ -1,6 +1,6 @@
 const 
     regExps = {
-        keywordTest: /this|import|use|as/,
+        keywordTest: /^(this|import|use|as)$/,
         variableKeyTest: /[^a-zA-Z_][^a-zA-Z0-9_]*/,
         headerVariable: /[\t ]*use( )+(?<value>(.+))( )+as( )+(?<key>(.+))( )*;[\t ]*/i,
         headerImport: /[\t ]*import( )+\"(?<path>(.+))\"(?<encoding>(\w+))( )+as( )+(?<key>(.)+)( )*;[\t ]*/i,

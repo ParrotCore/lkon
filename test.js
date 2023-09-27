@@ -3,7 +3,7 @@ require('./lkon.js')({allowRequire:true, allowGlobal:true}),
 console.log("Requiring time:")
 console.time("requiring");
 
-const required = require("./file.lkon");
+const required = require("./moscow.lkon");
 
 console.timeEnd("requiring");
 console.log(required,"\nParsing time:")
