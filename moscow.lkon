@@ -1,7 +1,21 @@
-import "./cityTypes.lkon"utf8 as cityTypes;
+import "./cityTypes.lkon"utf8 as [
+	cityType;
+];
+
+import "./cityMayors.lkon"utf8 as [
+	current => mayor;
+];
+
+use [
+	@operator => "Moskovskiy Metropoliten";
+	@lines => 15;
+	@since => 1935;
+	@length => 424.7;
+	@stations => 247;
+] as metro;
+
 use 1147 as firstMentioned;
 use "./keywords.txt"utf8 as keywords;
-use cityTypes.0 as cityType;
 
 [
 	#Best city i have ever seen.
@@ -24,22 +38,11 @@ use cityTypes.0 as cityType;
 			@* => "City Duma";
 		];
 		@mayors => [
-			@* => [
-				@name => "Sergey";
-				@surname => "Sobyanin";
-				@function => "main";
-			];
-			@* => null;
+			@* => mayor;
 		];
 	];
 	@mayor => this.government.mayors.0.surname;
-	@metro => [
-		@operator => "Moskovskiy Metropoliten";
-		@lines => 15;
-		@since => 1935;
-		@length => 424.7;
-		@stations => 247;
-	];
+	@metro => metro;
 	@more => [
 		@capitalCityOf => "Russia";
 		@highestTemperature => 38.2;

@@ -16,6 +16,11 @@ The only thing you have to do is download it in VSC marketplace:
 - [GitHub](https://github.com/yobonez/vscode-lkon-highlighting)
 
 ---
+# What's new?
+- Destructuring imports;
+- Object variables;
+
+---
 
 # LKON Supports these types of data:
 - Files - `"./path/to/file"encoding`;
@@ -27,6 +32,8 @@ The only thing you have to do is download it in VSC marketplace:
 - Infinity - `Infinity`;
 - Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
 - NaN - `NaN`;
+- Numeric Array - `[<br/>@* => value;<br/>];`;
+- Associative Array - `[<r/>@key => value;<br/>];`.
 
 ---
 
@@ -43,20 +50,26 @@ The only thing you have to do is download it in VSC marketplace:
 - Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header), but remember variables cannot be objects;
 - You can also import another lkon file and use its data by writing `import "./path/to/file.lkon"utf8 as key;`;
 - Now you can use one variable in many places using `this` keyword representing current files' parsed content!
+- Destructuring, and object variables are now enabled! Look at examples of using.
 
 ---
 
-# How to use it?
+# Examples of using
 Using this module is very simple:
 ```js
 const lkon = require('lkon')();
 
 lkon.parse(
 `
-use "./private.key"bin as privateKey;
-use "./public.key"bin as publicKey;
 use "v2.0.0" as version;
-import "./database.lkon"utf8 as db;
+use [
+	@privateKey => "./private.key"bin;
+	@publicKey => "./public.key"bin;
+] as keys;
+import "./database.lkon"utf8 as [
+	host => dbHost;
+	port => dbPort;
+];
 
 
 [
@@ -65,13 +78,10 @@ import "./database.lkon"utf8 as db;
     @username => "root";
     @password => "Q@wertyuiop";
   ];
-  @keys => [
-    @public => publicKey;
-    @private => privateKey;
-  ];
+  @keys => keys;
   @database => [
-    @host => db.host;
-    @port => db.port;
+    @host => dbHost;
+    @port => dbPort;
     @username => this.admin.username;
     @password => this.admin.password;
   ];

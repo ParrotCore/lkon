@@ -15,7 +15,8 @@ function writeBody(json, out, tabsCount)
     for(let i in json) if(!["__variables", "__imports"].includes(i))
     {
         let str = `${tabs(tabsCount)}@${!isNaN(i) ? '*' : i} => `
-        if(json[i]?.__path) str += `${json[i].__path};`;
+        if(json[i]?.__path)
+            str += `${json[i].__path};`;
         else
         {
             if(typeof json[i] == 'string')
@@ -58,9 +59,13 @@ function lkonStringify(json)
     if(json?.toString() != '[object Object]' && !Array.isArray(json)) return errors.wrongInput();
     let output = [];
     for(let key in json.__imports)
-        output.push(`import ${json.__imports[key].__path} as ${key};`);
+        if(json.__imports[key]?.__original) output.push(json.__imports[key].__original);
+        else output.push(`import ${json.__imports[key]?.__path} as ${key};`);
     for(let key in json.__variables)
-        output.push(`use ${json.__variables[key]?.__original ?? json.__variables[key]} as ${key};`)
+    {
+        let deleteBool = json.__variables[key]?.__original == 'delete' ? true : false;
+        if(!deleteBool) output.push(`use ${json.__variables[key]?.__original ?? json.__variables[key]} as ${key};`)
+    }
     output.push('[');    
     writeBody(json, output, 1);
     output.push('];');

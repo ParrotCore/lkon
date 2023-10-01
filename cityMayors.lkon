@@ -1,0 +1,7 @@
+[
+    @current => [
+        @name => "Sergey";
+		@surname => "Sobyanin";
+		@term_of_office => "2013-2023";
+    ];
+];

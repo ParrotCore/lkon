@@ -1,11 +1,17 @@
 const 
     regExps = {
-        keywordTest: /^(this|import|use|as)$/,
-        variableKeyTest: /[^a-zA-Z_][^a-zA-Z0-9_]*/,
-        headerVariable: /[\t ]*use( )+(?<value>(.+))( )+as( )+(?<key>(.+))( )*;[\t ]*/i,
-        headerImport: /[\t ]*import( )+\"(?<path>(.+))\"(?<encoding>(\w+))( )+as( )+(?<key>(.)+)( )*;[\t ]*/i,
-        lineTest: /^[\t ]*@(?<key>(\*|[a-z_][a-z0-9_]*))( )+\=\>( )+(?<value>((.)+;|\[))[\t ]*$/i,
-        lineMultiTest: /([\t ]*@(\*|[a-z_][a-z0-9_]*)( )+\=\>( )+((.)+;|\[)[\t ]*){2,}/i,
+        keywordTest: /^(this|import|use|as)$/i,
+        variableKeyTest: /^[^a-z_]|[^a-z0-9_]+$/i,
+        headerVariable: /[\t ]*use[\t ]+(?<value>(.)+)[\t ]+as[\t ]+(?<key>(.+))[\t ]*;[\t ]*/i,
+        headerObjectVariable: {
+            start: /[\t]*use[\t ]+\[[\t ]*/i,
+            end: /[\t ]*\][\t ]+as[\t ]+(?<key>(.+))[\t ]*;[\t ]*/i,
+        },
+        headerImport: /[\t ]*import[\t ]+\"(?<path>(.+))\"(?<encoding>(\w+))[\t ]+as[\t ]+(?<key>([a-z_][a-z0-9_]+(?=[\t ]*;))|\[)[\t ]*/i,
+        assocDestructuringKey: /[\t ]*(?<objectkey>[a-z_][a-z0-9_]*)[\t ]+\=\>[\t ]+(?<variablekey>[a-z_][a-z0-9_]*)[\t ]*;[\t ]*/i,
+        assocDestructuringKeyNoRenaming: /[\t ]*(?<variablekey>([a-z_][a-z0-9_]*))[\t ]*;[\t ]*/i,
+        lineTest: /^[\t ]*@(?<key>(\*|[a-z_][a-z0-9_]*))[\t ]+\=\>[\t ]+(?<value>((.)+;|\[))[\t ]*$/i,
+        lineMultiTest: /([\t ]*@(\*|[a-z_][a-z0-9_]*)[\t ]+\=\>[\t ]+((.)+;|\[)[\t ]*){2,}/i,
         fileTest: /^\"(?<file>(.)+)\"(?<encoding>(\w+))$/,
         stringTest: /^\"(?<string>(.)+)\"$/,
         regexpTest: /\/(?<expression>(.+))\/(?<flags>([a-z]*))/,
@@ -14,7 +20,7 @@ const
         numberTest: {test: (str) => !isNaN(str)},
         keyTest: /__variables|__imports/g,
         reservedProperties: /__path|__type|__original/g,
-        assignmentMark: /^[\t ]*[^\t ]+( )+(?<mark>(.+))( )+[^\t ]+[\t ]*$/
+        assignmentMark: /^[\t ]*[^\t ]+[\t ]+(?<mark>(.+))[\t ]+[^\t ]+[\t ]*$/
     },
     possibleValues = {
         undefined: undefined,
@@ -38,10 +44,24 @@ const
         reservedProperty: (line, position, name) => new TypeError(`Key name '${name}' is reserved for LKON data-${name.replace(/^__/, '')} property at ${line+1}:${position}`),
         variablesConflict: (line, position, name, type) => new Error(`'${name}' key has already been reserved for ${["variable","import"][type]} at ${line+1}:${position}`),
         headerVariableInBody: (line, position) => new SyntaxError(`Cannot use 'use' statement inside of object body, at: ${line+1}:${position}`),
-        importInBody: (line, position) => new SyntaxError(`Cannot use 'import' statement inside of object body, at: ${line+1}:${position}`)
+        importInBody: (line, position) => new SyntaxError(`Cannot use 'import' statement inside of object body, at: ${line+1}:${position}`),
+        unknownProperty: (line, position, property) => new Error(`Cannor read '${property}' object's property at ${line+1}:${position}`)
     },
     {readFileSync, existsSync} = require("node:fs"),
     {inspect} = require('node:util');
+
+function createCounter()
+{
+    let i = 0;
+    /**
+     * @param {Boolean} show - show last state of the counter;
+     * @returns {Number} - last state of counter, or its value higher by one;
+     */
+    return (show) => {
+        if(show) return i-1;
+        else return i++;
+    }
+}
 
 function parseString(value)
 {
@@ -83,11 +103,11 @@ function parseRegexp(value)
 
 function getImport(line, lineNumber, imports, variables)
 {
-    let {path, encoding, key} = line.match(regExps.headerImport).groups;
+    const {key, path, encoding} = line.match(regExps.headerImport).groups;
     if(Object.keys(variables).includes(key)) throw errors.variablesConflict(lineNumber, line.indexOf(key), key, 0);
     if(regExps.keywordTest.test(key)) throw errors.keywordError(lineNumber, line.indexOf(key), key)
     if(regExps.variableKeyTest.test(key)){
-        let [err] = key.match(regExps.variableKeyTest);
+        let err = key.match(regExps.variableKeyTest)[0];
         throw errors.unexpectedToken(lineNumber, line.indexOf(err), err)
     }
     if(encoding == 'bin') throw TypeError(`Cannot parse binary file at ${Number(lineNumber)+1}:${line.indexOf('bin')}`);
@@ -110,7 +130,7 @@ function getVariable(line, lineNumber, variables, imports)
     if(Object.keys(imports).includes(key)) throw errors.variablesConflict(lineNumber, line.indexOf(key), key, 1);
     if(regExps.keywordTest.test(key)) throw errors.keywordError(lineNumber, line.indexOf(key), key)
     if(regExps.variableKeyTest.test(key)){
-        let [err] = key.match(regExps.variableKeyTest).groups
+        let err = key.match(regExps.variableKeyTest)[0]
         throw errors.unexpectedToken(lineNumber, line.indexOf(err), err)
     }
     if(regExps.stringTest.test(value)) value = parseString(value);
@@ -171,6 +191,20 @@ function addValue(obj, path, value)
     return obj;
 }
 
+function assignment(toAssign)
+{
+    let res;
+    try
+    {   
+        res = Object.assign(toAssign, {__original: "delete"});
+    }
+    catch(error)
+    {
+        res = Object.assign(false, {__original: "delete"})
+    }
+    return res;
+}
+
 /**
 *
 * @param {String} lkonData - string with lkon data.
@@ -193,10 +227,11 @@ function lkonParse(lkonData)
         imports = {},
         importsKeys,
         output = {},
+        destructuringCounter = createCounter(),
         path = [];
     for(let i = 0; i < lines.length; i++) if(lines[i])
     {
-        const clearLine = lines[i].replace(/^[\t ]+|[\t ]+$/g, '');
+        const clearLine = lines[i].trim();
         switch(mode)
         {
             case 0:
@@ -210,7 +245,119 @@ function lkonParse(lkonData)
                 else if(clearLine != '')
                 {
                     if(regExps.headerVariable.test(lines[i])) getVariable(lines[i], i, variables, imports);
-                    else if(regExps.headerImport.test(lines[i])) getImport(lines[i], i, imports, variables);
+                    else if(regExps.headerObjectVariable.start.test(lines[i])){
+                        let startIndex = i+1,
+                            endIndex,
+                            variableKey,
+                            variableValue,
+                            originalValue;
+                        for(let j = i; j < lines.length; j++)
+                        {
+                            if(regExps.headerObjectVariable.end.test(lines[j]))
+                            {
+                                variableKey = lines[j].match(regExps.headerObjectVariable.end).groups.key;
+                                endIndex = j;
+                                break;
+                            }
+                        }
+                        variableValue = `[\n${lines.slice(startIndex, endIndex).join("\n")}\n];`;
+                        originalValue = variableValue.substring(0, variableValue.length-1);
+                        if(regExps.keywordTest.test(variableKey)) throw errors.keywordError(i, lines[i].indexOf(variableKey), variableKey)
+                        if(Object.keys(variables).includes(variableKey)) throw errors.variablesConflict(i, lines[i].indexOf(variableKey), variableKey, 0)
+                        if(Object.keys(imports).includes(variableKey)) throw errors.variablesConflict(i, lines[i].indexOf(variableKey), variableKey, 1);
+                        try
+                        {
+                            variableValue = lkonParse(variableValue);
+                        }
+                        catch(error)
+                        {
+                            let {lineNumber,indexPosition} = error.message.match(/(?<lineNumber>[0-9]+):(?<indexPosition>[0-9]+)/)?.groups;
+                            error.message = error.message.split("at")[0] + `at ${Number(lineNumber)+i}:${indexPosition}`
+                            throw error;
+                        }
+                        variables[variableKey] = Object.assign(variableValue, {__original: originalValue});
+                        i = endIndex;
+                    }
+                    else if(regExps.headerImport.test(lines[i]))
+                    {
+                        let {key, path, encoding} = lines[i].match(regExps.headerImport).groups;
+                        if(key != '[')
+                            getImport(lines[i], i, imports, variables);
+                        else
+                        {
+                            const 
+                                destructuredId = `__destructured_${destructuringCounter()}`,
+                                startIndex = i+1,
+                                endIndex = startIndex + lines.slice(startIndex).indexOf('];');
+                            getImport(`import "${path}"${encoding} as ${destructuredId};`, i, imports, variables);
+
+                            let keys = lines.slice(startIndex, endIndex).map(el => {
+                                let res = el.trim();
+                                return res.substring(0, res.length-1);
+                            });
+                        
+                            if(Array.isArray(imports[destructuredId]))
+                            {
+                                let importValues = imports[destructuredId].slice(0, keys.length)
+                                for(let j = 0; j < keys.length; j++)
+                                {
+                                    const k = keys[j],
+                                          lineNumber = 1 + i + j;
+                                    if(regExps.assocDestructuringKey.test(lines[lineNumber])) throw errors.unexpectedToken(lineNumber, lines[lineNumber].indexOf("=>"), "=>");
+                                    if(regExps.variableKeyTest.test(k)){
+                                        let token = k.match(regExps.variableKeyTest)[0];
+                                        throw errors.unexpectedToken(lineNumber, lines[lineNumber].indexOf(token), token);
+                                    }
+                                    if(!lines[lineNumber].trim().endsWith(";")) throw errors.missingSemicolon(lineNumber, lines[lineNumber].length-1);
+                                    if(regExps.keywordTest.test(k)) throw errors.keywordError(lineNumber, lines[lineNumber].indexOf(k), k)
+                                    if(Object.keys(variables).includes(k)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(k), k, 0)
+                                    if(Object.keys(imports).includes(k)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(k), k, 1);
+                                    
+                                    variables[k] = assignment(importValues.shift());
+                                }
+                                imports[destructuredId].__original = `import "${path}"${encoding} as [\n\t${keys.join(";\n\t")};\n];`
+                            }
+                            else
+                            {
+                                for(let j = 0; j < keys.length; j++)
+                                {
+                                    const lineNumber = 1 + i + j;
+                                    if(regExps.assocDestructuringKey.test(lines[lineNumber]))
+                                    {
+                                        const {objectkey, variablekey} = lines[lineNumber].match(regExps.assocDestructuringKey).groups;
+                                        if(!imports[destructuredId][objectkey]) throw errors.unknownProperty(lineNumber, lines[lineNumber].indexOf(objectkey), objectkey)
+                                        if(regExps.variableKeyTest.test(variablekey)){
+                                            let token = variablekey.match(regExps.variableKeyTest)[0];
+                                            throw errors.unexpectedToken(lineNumber, lines[lineNumber].indexOf(token), token);
+                                        }
+                                        if(!lines[lineNumber].trim().endsWith(";")) throw errors.missingSemicolon(lineNumber, lines[lineNumber].length-1);
+                                        if(regExps.keywordTest.test(variablekey)) throw errors.keywordError(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey);
+                                        if(Object.keys(variables).includes(variablekey)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey, 0)
+                                        if(Object.keys(imports).includes(variablekey)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey, 1);
+                                        variables[variablekey] = assignment(imports[destructuredId][objectkey]);
+                                    }
+                                    else if(regExps.assocDestructuringKeyNoRenaming.test(lines[lineNumber]))
+                                    {
+                                        const {variablekey} = lines[lineNumber].match(regExps.assocDestructuringKeyNoRenaming).groups;
+                                        if(!imports[destructuredId][variablekey]) throw errors.unknownProperty(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey)
+
+                                        if(regExps.variableKeyTest.test(variablekey)){
+                                            let token = variablekey.match(regExps.variableKeyTest)[0];
+                                            throw errors.unexpectedToken(lineNumber, lines[lineNumber].indexOf(token), token);
+                                        }
+                                        if(!lines[lineNumber].trim().endsWith(";")) throw errors.missingSemicolon(lineNumber, lines[lineNumber].length-1);
+                                        if(regExps.keywordTest.test(variablekey)) throw errors.keywordError(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey);
+                                        if(Object.keys(variables).includes(variablekey)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey, 0)
+                                        if(Object.keys(imports).includes(variablekey)) throw errors.variablesConflict(lineNumber, lines[lineNumber].indexOf(variablekey), variablekey, 1);
+                                        variables[variablekey] = assignment(imports[destructuredId][variablekey])
+                                    }
+                                    else throw errors.wrongSyntax(lineNumber, lines[lineNumber].indexOf(lines[lineNumber].trim()[0]));
+                                }
+                                imports[destructuredId].__original = `import "${path}"${encoding} as [\n\t${keys.join(";\n\t")};\n];`
+                            }
+                            i = endIndex;
+                        }
+                    }
                     else
                     {
                         if(!lines[i].endsWith(';')) throw errors.missingSemicolon(i, lines[i].length);
