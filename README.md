@@ -37,13 +37,13 @@ The only thing you have to do is download it in VSC marketplace:
 [
     @* => value;
 ];
-```;
+```
 - Associative Array -
 ```js
 [
     @key => value;
 ];
-```.
+```
 
 ---
 
