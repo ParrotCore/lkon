@@ -32,13 +32,16 @@ The only thing you have to do is download it in VSC marketplace:
 - Infinity - `Infinity`;
 - Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
 - NaN - `NaN`;
-- Numeric Array - 
+- Numeric Array:
+
 ```js
 [
     @* => value;
 ];
 ```
-- Associative Array -
+
+- Associative Array:
+
 ```js
 [
     @key => value;
