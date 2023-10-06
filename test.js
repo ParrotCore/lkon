@@ -1,5 +1,6 @@
-require('./lkon.js')({allowRequire:true, allowGlobal:true}),
-
+require('./lkon.js')({allowRequire:true, allowGlobal:true});
+console.log(require("./moscow.lkon"))
+/*
 console.log("Requiring time:")
 console.time("requiring");
 
@@ -32,3 +33,4 @@ const stringifized = LKON.stringify(parsed);
 
 console.timeEnd("stringifying");
 console.log(stringifized);
+*/

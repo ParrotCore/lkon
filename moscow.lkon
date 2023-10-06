@@ -20,7 +20,7 @@ use "./keywords.txt"utf8 as keywords;
 [
 	#Best city i have ever seen.
 	@city => "Moscow";
-	@description => "\"The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
+	@description => "\"[this.city] - The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
 	@cityType => cityType;
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
@@ -53,4 +53,5 @@ use "./keywords.txt"utf8 as keywords;
 		@rate => 0.85;
 		@cityDefinition => undefined;
 	];
+	@greeting => "Welcome to [this.city], the capital city of [this.more.capitalCityOf]! Prepare warm jacket for [this.more.lowestTemperature]℃!";
 ];

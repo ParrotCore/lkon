@@ -19,9 +19,15 @@ function writeBody(json, out, tabsCount)
             str += `${json[i].__path};`;
         else
         {
-            if(typeof json[i] == 'string')
+            if(typeof json[i] == 'string' || json[i] instanceof String && json[i].__original)
             {
                 let val = json[i];
+
+                if(val.__original)
+                {
+                    val = val.__original;
+                }
+
                 for(let [reg, change] of [
                     [/\n/g, "\\n"],
                     [/\t/g, "\\t"],

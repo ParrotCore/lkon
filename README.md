@@ -17,8 +17,8 @@ The only thing you have to do is download it in VSC marketplace:
 
 ---
 # What's new?
-- Destructuring imports;
-- Object variables;
+- Object variables fix
+- Template strings
 
 ---
 
@@ -55,6 +55,7 @@ The only thing you have to do is download it in VSC marketplace:
 * If you set allowGlobal to true, LKON global object will be created.
 * If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
 - Every line (except empty ones, and the ones ending with `[`) of lkon code must end with `;`.
+- Every string can be set to template string, just put `[this.path.to.value]`, `[importKey.path.to.value]`, or `[variableKey.path.to.value]` inside of it.
 - Object keys must be followed by `@`;
 - An assigment mark is `=>`;
 - Object is set to an Array when it includes lines set to `*` key name;
@@ -92,6 +93,7 @@ import "./database.lkon"utf8 as [
     @password => "Q@wertyuiop";
   ];
   @keys => keys;
+  @greeting => "Hello, [this.admin.username]! The server is running on [dbHost]:[dbPort], its version is [version]."
   @database => [
     @host => dbHost;
     @port => dbPort;
@@ -115,6 +117,7 @@ import "./database.lkon"utf8 as [
 			public: <Buffer A7 B2 C7 ...>,
 			private: <Buffer C3 A1 B8 ...>
 		},
+		greeting: "Hello, root! The server is running on 127.0.0.1:80, its version is v2.0.0.",
 		database: {
 			host: "127.0.0.1",
 			port: 80,

@@ -1,3 +1,8 @@
+/*
+TODO: getVariable
+      Variables now can be objects, so this functionality is necessary.
+*/
+
 const 
     regExps = {
         keywordTest: /^(this|import|use|as)$/i,
@@ -20,7 +25,8 @@ const
         numberTest: {test: (str) => !isNaN(str)},
         keyTest: /__variables|__imports/g,
         reservedProperties: /__path|__type|__original/g,
-        assignmentMark: /^[\t ]*[^\t ]+[\t ]+(?<mark>(.+))[\t ]+[^\t ]+[\t ]*$/
+        assignmentMark: /^[\t ]*[^\t ]+[\t ]+(?<mark>(.+))[\t ]+[^\t ]+[\t ]*$/,
+        templateString: /\[[\t ]*([a-z_][a-z0-9_]+(\.[a-z_][a-z0-9_]+)*)[\t ]*\]/gi
     },
     possibleValues = {
         undefined: undefined,
@@ -45,7 +51,8 @@ const
         variablesConflict: (line, position, name, type) => new Error(`'${name}' key has already been reserved for ${["variable","import"][type]} at ${line+1}:${position}`),
         headerVariableInBody: (line, position) => new SyntaxError(`Cannot use 'use' statement inside of object body, at: ${line+1}:${position}`),
         importInBody: (line, position) => new SyntaxError(`Cannot use 'import' statement inside of object body, at: ${line+1}:${position}`),
-        unknownProperty: (line, position, property) => new Error(`Cannor read '${property}' object's property at ${line+1}:${position}`)
+        unknownProperty: (line, position, property) => new Error(`Cannor read '${property}' object's property at ${line+1}:${position}`),
+        wrongTemplateStringValueType: (property, line, position) => new TypeError(`Cannot add '${property}' to template string at ${line}:${position}, because it's an array, or object`)
     },
     {readFileSync, existsSync} = require("node:fs"),
     {inspect} = require('node:util');
@@ -63,16 +70,65 @@ function createCounter()
     }
 }
 
+function parseTemplateString([output, variables, imports], val, [line, lineNumber])
+{
+    let res = val;
+    const templates = val.match(regExps.templateString)
+        .map(el => {
+            let template = {original: el, path: el.substring(1, el.length-1)},
+                continueChecking = true;
+            try 
+            {
+                template.value = getThis(output, template.path, [line, lineNumber]);
+                continueChecking = false;
+            } catch(error){};
+
+            if(continueChecking) try
+            {
+                template.value = getImportValue(imports, template.path, [line, lineNumber])
+                continueChecking = false;
+            }
+            catch(error){};
+
+            if(continueChecking) try
+            {
+                template.value = getImportValue(variables, template.path, [line, lineNumber]);
+                continueChecking = false;
+            }
+            catch(error){};
+
+            if(continueChecking)
+            {
+                template.value = variables[template.path];
+            }
+
+            if(!template.value) return false;
+            else
+            {
+                if(template.value.toString() == '[object Object]') throw errors.wrongTemplateStringValueType(template.path, lineNumber, line.indexOf(val));
+                return template;
+            }
+        })
+        .filter(el => el);
+
+    for(const template of templates.filter(template => template)) res = res.replace(template.original, template.value);
+
+    res = Object.assign(res, {__original: val});
+    return res;
+}
+
 function parseString(value)
 {
-    let val = value.substring(1, value.length-1).replace(/\\n/g, "\n");
+    let val = value.substring(1, value.length-1);
+
     for(
         let [reg, change] of [
             [/\\n/g, "\n"],
             [/\\t/g, "\t"],
             [/\\\"/g, "\""]
         ]
-    ) val = val.replace(reg, change)
+    ) val = val.replace(reg, change);
+
     return val;
 };
 
@@ -385,7 +441,11 @@ function lkonParse(lkonData)
                             oldValue = value;
                         if(value.endsWith(";")) value = value.substring(0, value.length-1);
 
-                        if(regExps.stringTest.test(value)) value = parseString(value);
+                        if(regExps.stringTest.test(value))
+                        {
+                            value = parseString(value);
+                            if(regExps.templateString.test(value)) value = parseTemplateString([output, variables, imports], value, [lines[i], i]);
+                        }
                         else if(regExps.numberTest.test(value)) value = parseNumber(value);
                         else if(possibleValuesKeys.includes(value)) value = parseMore(value);
                         else if(regExps.fileTest.test(value)) value = parseFile(value)
@@ -411,7 +471,23 @@ function lkonParse(lkonData)
                                 value = Object.assign(false, {__type: 'variable', __path: value, __original: inspect(variables[value])});
                             }
                         }
-                        else if(regExps.importTest.test(value)) value = Object.assign(getImportValue(imports, value, [lines[i], i]), {__path: value, __type: 'import-variable'});
+                        else if(regExps.importTest.test(value))
+                        {
+                            try
+                            {
+                                value = Object.assign(getImportValue(imports, value, [lines[i], i]), {__path: value, __type: 'import-variable'});
+                            }
+                            catch(error)
+                            {
+                                const got = getImportValue(variables, value, [lines[i], i]);
+                                try {
+                                    value = Object.assign(got, {__type: 'variable', __path: value})
+                                } catch(err)
+                                {
+                                    value = Object.assign(got, {__type: 'variable', __path: value, __original: inspect(got)});
+                                }
+                            }
+                        }
                         else throw errors.unexpectedValue(i, lines[i].indexOf(value), value)
 
                         if(!path.length && regExps.keyTest.test(key)) throw errors.keyError(i, lines[i].indexOf(key), key);
