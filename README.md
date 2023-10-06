@@ -34,17 +34,29 @@ The only thing you have to do is download it in VSC marketplace:
 - NaN - `NaN`;
 - Numeric Array:
 
+<<<<<<< HEAD
 ```lkon
 [
 	@* => value;
+=======
+```js
+[
+    @* => value;
+>>>>>>> cf23968ed796390781b945c9cebfdc92b996ac67
 ];
 ```
 
 - Associative Array:
 
+<<<<<<< HEAD
 ```lkon
 [
 	@key => value;
+=======
+```js
+[
+    @key => value;
+>>>>>>> cf23968ed796390781b945c9cebfdc92b996ac67
 ];
 ```
 
