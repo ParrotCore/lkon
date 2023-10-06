@@ -1,6 +1,6 @@
 {
   "name": "lkon",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "LKON is type of Object Notation implemented as an open-source library for JS.",
   "main": "lkon.js",
   "scripts": {
