@@ -32,8 +32,21 @@ The only thing you have to do is download it in VSC marketplace:
 - Infinity - `Infinity`;
 - Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
 - NaN - `NaN`;
-- Numeric Array - `[<br/>@* => value;<br/>];`;
-- Associative Array - `[<r/>@key => value;<br/>];`.
+- Numeric Array:
+
+```lkon
+[
+	@* => value;
+];
+```
+
+- Associative Array:
+
+```lkon
+[
+	@key => value;
+];
+```
 
 ---
 
@@ -47,7 +60,7 @@ The only thing you have to do is download it in VSC marketplace:
 - Object is set to an Array when it includes lines set to `*` key name;
 - You can use single-line comments by following the text with `#`;
 - You can read files with `bin` encoding, the output will be a Buffer;
-- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header), but remember variables cannot be objects;
+- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header);
 - You can also import another lkon file and use its data by writing `import "./path/to/file.lkon"utf8 as key;`;
 - Now you can use one variable in many places using `this` keyword representing current files' parsed content!
 - Destructuring, and object variables are now enabled! Look at examples of using.
