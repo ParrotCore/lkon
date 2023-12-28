@@ -98,12 +98,12 @@ import "./database.lkon"utf8 as [
     @password => "Q@wertyuiop";
   ];
   @keys => keys;
-  @greeting => "Hello, [this.admin.username]! The server is running on [dbHost]:[dbPort], its version is [version]."
+  @greeting => "Hello, [Main.admin.username]! The server is running on [dbHost]:[dbPort], its version is [version]."
   @database => [
     @host => dbHost;
     @port => dbPort;
-    @username => this.admin.username;
-    @password => this.admin.password;
+    @username => Main.admin.username;
+    @password => Main.admin.password;
   ];
   @localhostDirectory => "./views";
   @maxPasswordLength => 128;
