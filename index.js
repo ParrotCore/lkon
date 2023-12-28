@@ -1,5 +1,5 @@
-const parse = require("./parser.js"),
-      stringify = require("./stringifier.js"),
+const parse = require("./parser/"),
+      stringify = require("./stringifier/"),
       { version } = require("./package.json"),
       { readFileSync } = require('node:fs');
 
@@ -12,16 +12,7 @@ const parse = require("./parser.js"),
  */
 function lkonInit(initOptions)
 {
-    try
-    {
-        var {allowRequire, allowGlobal} = initOptions;
-    }
-    catch(err){
-        var allowRequire = false,
-            allowGlobal = false;
-    }
-
-    if(allowRequire)
+    if(initOptions.allowRequire)
         require.extensions['.lkon'] = (mod,filename) => {
             try
             {
@@ -34,12 +25,14 @@ function lkonInit(initOptions)
                 throw new Error(`Error loading ${filename}: ${error.message}`)
             }
         };
-    if(allowGlobal)
+    if(initOptions.allowGlobal)
         global.LKON = {
             parse,
-            stringify
+            stringify,
+            version
         }
+
     return {parse, stringify, version}
 }
 
-module.exports = lkonInit;
+module.exports = Object.assign(lkonInit, {stringify, parse, version});

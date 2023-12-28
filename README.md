@@ -1,7 +1,6 @@
 # About project...
-Language for Konfiguration Object Notation was created to be something brand new, easy human-readable, auto-documented, and easy-changeable.
-LKON lets you use variables and even read other files to access data from them to re-use them.
-This makes configuration-files faster to write, use, and edit.
+LKON Parser was created to deliever brand new configuration language called `Language for Konfiguration Object Notation` to your Node.JS project.
+**Current version of newer stringifier does not support variables and imports yet!**
 
 ![LKON](./icon.png)
 
@@ -17,8 +16,9 @@ The only thing you have to do is download it in VSC marketplace:
 
 ---
 # What's new?
-- Object variables fix
-- Template strings
+- Better Parser
+- Multi-Level Destructuring
+- Changed the `this` keyword to `Main` due to the previous name confusing users 
 
 ---
 
@@ -26,11 +26,11 @@ The only thing you have to do is download it in VSC marketplace:
 - Files - `"./path/to/file"encoding`;
 - RegExps - `/your_expression_here/flags`;
 - String - `"string"`;
-- undefined - `undefined`;
+- Date - `"01-01-1970, 0:00:00.000"date`
+- undefined - `Undefined`;
 - Boolean - `True` or `False`;
-- null - `null`;
-- Infinity - `Infinity`;
-- Number - (every kind of notation!) `0x0001` or `1` or `1e+21` or `.1` or `-1`;
+- null - `Null`;
+- Number - (every kind of notation!) `0x0001`, `1`, `1e+21`, `.1`, `-1`, or `Infinity`;
 - NaN - `NaN`;
 - Numeric Array:
 
@@ -52,19 +52,24 @@ The only thing you have to do is download it in VSC marketplace:
 
 # Remember
 - Before you use it, you need to init this using require("lkon")({allowGlobal: true|false, allowRequire: true|false});
-* If you set allowGlobal to true, LKON global object will be created.
-* If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
-- Every line (except empty ones, and the ones ending with `[`) of lkon code must end with `;`.
-- Every string can be set to template string, just put `[this.path.to.value]`, `[importKey.path.to.value]`, or `[variableKey.path.to.value]` inside of it.
-- Object keys must be followed by `@`;
-- An assigment mark is `=>`;
-- Object is set to an Array when it includes lines set to `*` key name;
-- You can use single-line comments by following the text with `#`;
-- You can read files with `bin` encoding, the output will be a Buffer;
-- Now you can use variables by simply writing `use value as key;` (e.g. `use 10 as ten;`), at the top of the file (header);
-- You can also import another lkon file and use its data by writing `import "./path/to/file.lkon"utf8 as key;`;
-- Now you can use one variable in many places using `this` keyword representing current files' parsed content!
-- Destructuring, and object variables are now enabled! Look at examples of using.
+	+ If you set allowGlobal to true, LKON global object will be created.
+	+ If you set allowRequire to true, you will be able to read files with ".lkon" extension using require method, e.g. require("./path/to/file.lkon").
+- Variables & Imports can be set before `[`, in a `header` of the file;
+	+ Import instruction examples:
+		1. With destructuring: `import "./path/to/file.lkon"utf8 as [ key=>alias; ];`;
+		2. Without destructuring: `import "./path/to/file.lkon"utf8 as key;`;
+	+ Use instruction examples:
+		 1. With destructuring `use [ @hello => "world"; ] as [ hello=>alias ];`
+		 2. Without destructuring: `use "01-01-1970, 0:00:00.000"date as start;`;
+- Single-line comments must be followed by `#`;
+- Multi-line comments must begin and be followed by `'''` (three apostrophes);
+- Every line/expression of LKON Code must end with `[`, or `;`;
+- Object keys must begin with `@`;
+- `*` (asterisk) mean numeric index, if first property of object has a `*` key, the object is set to an array;
+- An assignment mark is `=>`;
+- `True`, `False`, `Undefined`, `NaN` and `Null` are cases sensitive and must be started by upper case letter;
+- Every string is multi-line, and template string. To put variables into string, you just need to put your variable into `[]` square brackets, e.g. `@string => "Hello, [users.0.username]";`, `@string => "Hello, [Main.users.0.username]";`;
+- `Main` keyword is a reference to the global variable of the main object of file.
 
 ---
 
@@ -75,7 +80,7 @@ const lkon = require('lkon')();
 
 lkon.parse(
 `
-use "v2.0.0" as version;
+use "v3.0.0" as version;
 use [
 	@privateKey => "./private.key"bin;
 	@publicKey => "./public.key"bin;
@@ -153,7 +158,9 @@ lkon.stringify(
 			password: "password",
 			favRegexp: /[ghi]+/
 		}
-	]
+	],
+	null,
+	'\t'
 )
 /*Expecting:
 	[

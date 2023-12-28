@@ -1,49 +1,60 @@
-import "./cityTypes.lkon"utf8 as [
+import "./test/cityTypes.lkon"utf8 as
+[
 	cityType;
 ];
 
-import "./cityMayors.lkon"utf8 as [
+import "./test/cityMayors.lkon"utf8 as
+[
 	current => mayor;
 ];
 
-use [
+use
+[
 	@operator => "Moskovskiy Metropoliten";
 	@lines => 15;
 	@since => 1935;
 	@length => 424.7;
 	@stations => 247;
-] as metro;
+]
+as metro;
 
-use 1147 as firstMentioned;
-use "./keywords.txt"utf8 as keywords;
+use "01-01-1147, 10:00:00.000"date as firstMentioned;
+use "./test/keywords.txt"utf8 as keywords;
 
 [
 	#Best city i have ever seen.
 	@city => "Moscow";
-	@description => "\"[this.city] - The City of growing skyscrappers.\"\n\t\tAnd wild dogs though.";
+	@description => "'[Main.city] - The City of growing skyscrappers.'
+		And wild dogs though.";
 	@cityType => cityType;
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Cyrillic}\p{P}]+$/u;
 	@keywords => keywords;
-	@monuments => [
+	@monuments => 
+	[
 		@* => "St. Basil's Cathedral";
 		@* => "Kremlin";
 		@* => "Red Square";
 	];
-	@dates => [
+	@dates => 
+	[
 		@first_mentioned => firstMentioned;
 	];
-	@government => [
-		@body => [
+	@government => 
+	[
+		@body => 
+		[
 			@* => "City Duma";
 		];
-		@mayors => [
+		@mayors =>
+		[
 			@* => mayor;
 		];
 	];
-	@mayor => this.government.mayors.0.surname;
+	@mayor => "[Main.government.mayors.0.name] [Main.government.mayors.0.surname]";
 	@metro => metro;
-	@more => [
+	@more => 
+	[
 		@capitalCityOf => "Russia";
 		@highestTemperature => 38.2;
 		@lowestTemperature => -42.1;
@@ -51,7 +62,7 @@ use "./keywords.txt"utf8 as keywords;
 		@color => 11259375;
 		@tobaccoConsuments => 5e+27;
 		@rate => 0.85;
-		@cityDefinition => undefined;
+		@cityDefinition => null;
 	];
-	@greeting => "Welcome to [this.city], the capital city of [this.more.capitalCityOf]! Prepare warm jacket for [this.more.lowestTemperature]℃!";
+	@greeting => "Welcome to [Main.city], the capital city of [Main.more.capitalCityOf]! Prepare warm jacket for [Main.more.lowestTemperature]℃!";
 ];
