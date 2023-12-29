@@ -11,8 +11,8 @@ module.exports = function minify(str)
 
     for (let i in replaced)
     {
-        if(replaced[i] == '"' && str[i-1] != '\\' && !insideRegex) insideString = !insideString;
-        else if(replaced[i] == '/' && str[i-1] != '\\' && !insideString) insideRegex = !insideRegex;
+        if(replaced[i] == '"' && replaced[i-1] != '\\' && !insideRegex) insideString = !insideString;
+        else if(replaced[i] == '/' && replaced[i-1] != '\\' && !insideString) insideRegex = !insideRegex;
         else if((replaced[i] == ';' || replaced[i] == '[') && !insideString && !insideRegex) splitPoints.push(Number(i)+1);
     }
 

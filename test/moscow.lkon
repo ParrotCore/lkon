@@ -5,7 +5,9 @@ import "./test/cityTypes.lkon"utf8 as
 
 import "./test/cityMayors.lkon"utf8 as
 [
-	current => mayor;
+	moscow => [
+        current => mayor;
+    ];
 ];
 
 use
@@ -19,7 +21,7 @@ use
 as metro;
 
 use "01-01-1147, 10:00:00.000"date as firstMentioned;
-use "./test/keywords.txt"utf8 as keywords;
+use "./test/moscow_keywords.txt"utf8 as keywords;
 
 [
 	#Best city i have ever seen.
@@ -62,7 +64,7 @@ use "./test/keywords.txt"utf8 as keywords;
 		@color => 11259375;
 		@tobaccoConsuments => 5e+27;
 		@rate => 0.85;
-		@cityDefinition => null;
+		@cityDefinition => Null;
 	];
 	@greeting => "Welcome to [Main.city], the capital city of [Main.more.capitalCityOf]! Prepare warm jacket for [Main.more.lowestTemperature]℃!";
 ];

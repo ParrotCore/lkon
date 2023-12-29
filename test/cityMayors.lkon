@@ -1,7 +1,16 @@
 [
-    @current => [
-        @name => "Sergey";
-		@surname => "Sobyanin";
-		@term_of_office => "2013-2023";
+    @moscow => [
+        @current => [
+            @name => "Sergey";
+            @surname => "Sobyanin";
+            @term_of_office => "2013-2023";
+        ];
+    ];
+    @warsaw => [
+        @current => [
+            @name => "Rafał";
+            @surname => "Trzaskowski";
+            @term_of_office => "2018-2023";
+        ];
     ];
 ];

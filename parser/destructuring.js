@@ -7,7 +7,7 @@ module.exports = function destructure(expressions, index, object)
         path = [],
         array_counters = {}
         variables = {};
-
+        
     for(end = structuredClone(start); end < expressions.length; end++)
     {
         if(expressions[end].endsWith('[')){
@@ -41,5 +41,6 @@ module.exports = function destructure(expressions, index, object)
             else variables[n || k] = parent[k];
         }
     }
+    
     return { index:end, variables };
 }

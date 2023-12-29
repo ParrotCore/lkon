@@ -1,0 +1,80 @@
+import "./test/cityTypes.lkon"utf8 as
+[
+	cityType;
+];
+
+import "./test/cityMayors.lkon"utf8 as
+[
+	warsaw => [
+        current => mayor;
+    ];
+];
+
+use
+[
+	@operator => "Metro Warszawskie";
+	@lines => 2;
+	@since => 1995;
+	@length => 41.5;
+	@stations => 39;
+]
+as metro;
+
+use 
+[
+    @* => "Palace of Culture and Science";
+    @* => "Presidential Palace";
+    @* => "Nicolaus Copernicus Monument";
+    @* => "Łazienki Park";
+    @* => "Royal Castle";
+    @* => "Sigismund's Column";
+    @* => "Wilanów Palace";
+]
+as monuments;
+
+use "01-01-1283, 10:00:00.000"date as firstMentioned;
+use "01-01-1300, 12:25:17.118"date as cityLaws;
+use "./test/warsaw_keywords.txt"utf8 as keywords;
+
+[
+	'''
+    ' The best of all the capitals I have been to.
+    '''
+	@city => "Warsaw";
+	@description => "'[Main.city] - The capital of Poland.";
+	@cityType => cityType;
+	@population => 17200000;
+	@alphabetRegexp => /^[\p{Script=Latin}\p{P}]+$/u;
+	@keywords => keywords;
+	@monuments => monuments;
+	@dates => 
+	[
+		@first_mentioned => firstMentioned;
+        @city_laws => cityLaws;
+	];
+	@government => 
+	[
+		@body => 
+		[
+			@* => "Warsaw City Council";
+		];
+		@mayors =>
+		[
+			@* => mayor;
+		];
+	];
+	@mayor => "[Main.government.mayors.0.name] [Main.government.mayors.0.surname]";
+	@metro => metro;
+	@more => 
+	[
+		@capitalCityOf => "Poland";
+		@highestTemperature => 37.2;
+		@lowestTemperature => -24.8;
+		@coffeeConsuments => Infinity;
+		@color => 11259375;
+		@tobaccoConsuments => 1e+23;
+		@rate => .87;
+		@cityDefinition => Null;
+	];
+	@greeting => "Welcome to [Main.city], the capital city of [Main.more.capitalCityOf]! Prepare warm jacket for [Main.more.lowestTemperature]℃!";
+];

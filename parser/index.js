@@ -46,13 +46,13 @@ module.exports = function parse(string)
                             file_content = read(path, encoding),
                             file;
 
-                        if(imported.some(el => el == file_content)) file = imported.find(el => el == file_content);
+                        if(imported.some(el => el[0] == file_content)) file = imported.find(el => el[0] == file_content)[1];
                         else
                         {
-                            imported.push(file_content);
                             file = module.exports(file_content);
+                            imported.push([file_content, file]);
                         }
-                        
+
                         if(key != '[') variables[key] = file;
                         else
                         {
