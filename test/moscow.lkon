@@ -1,9 +1,9 @@
-import "./test/cityTypes.lkon"utf8 as
+import "./cityTypes.lkon"utf8 as
 [
 	cityType;
 ];
 
-import "./test/cityMayors.lkon"utf8 as
+import "./cityMayors.lkon"utf8 as
 [
 	moscow => [
         current => mayor;
@@ -21,7 +21,7 @@ use
 as metro;
 
 use "01-01-1147, 10:00:00.000"date as firstMentioned;
-use "./test/moscow_keywords.txt"utf8 as keywords;
+use "./moscow_keywords.txt"utf8 as keywords;
 
 [
 	#Best city i have ever seen.

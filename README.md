@@ -16,9 +16,8 @@ The only thing you have to do is download it in VSC marketplace:
 
 ---
 # What's new?
-- Better Parser
-- Multi-Level Destructuring
-- Changed the `this` keyword to `Main` due to the previous name confusing users 
+Version 4.0.1:
+- Fixed reading files
 
 ---
 

@@ -1,11 +1,13 @@
-const minify = require("./minifier"),
-      regexps = require("./regexps"),
-      lkonObject = require("./lkonObject"),
-      parseValues = require("./parseValues"),
-      destructure = require("./destructuring"),
-      search = require("./get"),
-      imported = [],
-      { readFileSync: read, existsSync: exists } = require("node:fs");
+const
+    relativePath = require("./relativeLocation"),
+    minify = require("./minifier"),
+    regexps = require("./regexps"),
+    lkonObject = require("./lkonObject"),
+    parseValues = require("./parseValues"),
+    destructure = require("./destructuring"),
+    search = require("./get"),
+    imported = [],
+    { readFileSync: read, existsSync: exists } = require("node:fs");
 
 /**
  * 
@@ -36,29 +38,30 @@ module.exports = function parse(string)
                 }
                 else if(regexps.header.import.test(expression))
                 {
-                        let {path, encoding, key} = expression.match(regexps.header.import).groups;
-                            
-                        if(!Buffer.isEncoding(encoding) && encoding != 'bin') throw Error(`Cannot recognize '${encoding}' as encoding.`);
-                        if(encoding == 'bin') throw Error(`Cannot interprete file read with 'bin' encoding.`);
-                        if(!exists(path)) throw Error(`File '${path}' not found.`);
+                    let {path: Path, encoding, key} = expression.match(regexps.header.import).groups;
+                    Path = relativePath(Path);
+                        
+                    if(!Buffer.isEncoding(encoding) && encoding != 'bin') throw Error(`Cannot recognize '${encoding}' as encoding.`);
+                    if(encoding == 'bin') throw Error(`Cannot interprete file read with 'bin' encoding.`);
+                    if(!exists(Path)) throw Error(`File '${Path}' not found.`);
 
-                        let
-                            file_content = read(path, encoding),
-                            file;
+                    let
+                        file_content = read(Path, encoding),
+                        file;
 
-                        if(imported.some(el => el[0] == file_content)) file = imported.find(el => el[0] == file_content)[1];
-                        else
-                        {
-                            file = module.exports(file_content);
-                            imported.push([file_content, file]);
-                        }
+                    if(imported.some(el => el[0] == file_content)) file = imported.find(el => el[0] == file_content)[1];
+                    else
+                    {
+                        file = module.exports(file_content);
+                        imported.push([file_content, file]);
+                    }
 
-                        if(key != '[') variables[key] = file;
-                        else
-                        {
-                            let {variables: destructured} = destructure(expressions, i, file);
-                            for(let k in destructured) variables[k] = destructured[k];
-                        }
+                    if(key != '[') variables[key] = file;
+                    else
+                    {
+                        let {variables: destructured} = destructure(expressions, i, file);
+                        for(let k in destructured) variables[k] = destructured[k];
+                    }
                 }
                 else if(regexps.header.use.test(expression))
                 {

@@ -1,4 +1,5 @@
 const
+    relativePath = require("./relativeLocation"),
     search = require("./get"),
     { existsSync: exists, readFileSync: read } = require("node:fs"),
     { values: regexps } = require("./regexps");
@@ -36,7 +37,9 @@ module.exports = function parseValues(str, variables, references)
     }
     else if(regexps.file.test(str))
     {
-        const { path, encoding } = str.match(regexps.file).groups;
+        let { path, encoding } = str.match(regexps.file).groups;
+        
+        path = relativePath(path);
         
         if(!Buffer.isEncoding(encoding) && encoding != 'bin') throw Error(`Cannot recognize '${encoding}' as supported encoding.`);
         if(!exists(path)) throw Error(`The file '${path}' does not exist.`);
