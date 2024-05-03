@@ -1,58 +1,52 @@
-const inspect = require("./inspect"),
-      padTab = require("./padTab");
-
-function readObject(obj, replacer, space, res, nestingCount)
-{
-    for(let key in obj)
-    {
-        let expression = `@${(isNaN(key) ? key : '*')}${space ? ' => ' : '=>'}`,
-            val = inspect(obj[key], replacer);
-
-        if(val)
+const 
+    stringify_key = require('./stringify-key'),
+    stringify_value = require('./stringify-value'),
+    tabs = require('./tabs'),
+    isObject = (obj) => {
+        try
         {
-            expression += val;
-            if(val == '[')
-            {
-                if(!Object.keys(obj[key]).length)
-                {
-                    expression += '];';
-                    res.push(padTab(expression, space, nestingCount));
-                }
-                else
-                {
-                    res.push(padTab(expression, space, nestingCount));
-                    readObject(obj[key], replacer, space, res, nestingCount+1);
-                    res.push(padTab('];', space, nestingCount));
-                }
-            }
-            else
-            {
-                expression += ';';
-                res.push(padTab(expression, space, nestingCount));
-            }
+            return obj.constructor === Object;
+        }
+        // Null or Undefined.
+        catch(__error)
+        {
+            return false;
         }
     }
-    return res;
+
+function stringify(object, replacer, space, iteration)
+{   
+    let
+        arr = [];
+
+    for(let key in object)
+    {
+        let
+            value = object[key];
+
+        key = stringify_key(key);
+
+        if(isObject(value) || Array.isArray(value)) value = stringify(value, replacer, space, iteration+1);
+        else value = stringify_value(value, replacer);
+
+        arr.push(`${key} => ${value};`);
+    };
+
+    return [
+        '[',
+        ...arr
+            .map(el => tabs(space, iteration+1) + el),
+        tabs(space, iteration) + ']'
+    ].join(space ? '\n' : '')
 }
 
-/**
- * 
- * @param {Object|Array} obj JS Object to turn into LKON Data String.
- * @param {Function} replacer Method that will turn LKON-Non-Readable to readable value. 
- * @param {Number|String} space Number, or a character that will be a tab in output. 
- * @returns {String} LKON Data String
- */
-module.exports = function stringify(obj, replacer, space)
+function lkonStringify(object, replacer, space)
 {
-    let res = ['['],
-        nesting = 1;
+    if(!replacer) replacer = () => 'Null';
+    if(!space) space = 0;
+    iteration = 0;
 
-    if(!space && space !== 0) space = 0;
-    if(!replacer) replacer = undefined;
-
-    readObject(obj, replacer, space, res, nesting);
-    res.push('];')
-
-    if(!space) return res.join("").replace(/\r\n|\n|\r/g,"\\n").replace(/\t/g, "\\t");
-    else return res.join("\n");
+    return stringify(object, replacer, space, iteration);
 }
+
+module.exports = lkonStringify;

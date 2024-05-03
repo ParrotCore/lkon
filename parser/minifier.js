@@ -1,55 +1,84 @@
-function commentRemover(str)
+// TODO: Syntax Analyzis with errors.
+
+function minify(str)
 {
-    if(!/'''|#/.test(str)) return str;
-
-    let insideString,
-        insideRegex,
-        insideComment,
-        res = str.replace(/\s*#[^\r\n]*/g, '').split("");
-
-    for(let i = 0; i < res.length; i++)
-    {
-        if(res[i] == '"' && res[i-1] != '\\' && !insideRegex && !insideComment) insideString = !insideString;
-        else if(res[i] == '/' && res[i-1] != '\\' && !insideString && !insideComment) insideRegex = !insideRegex;
-        else if(res[i] + res[i+1] + res[i+2] == "'''" && res[i-1] != '\\' && !insideString && !insideRegex)
-        {
-            insideComment = !insideComment;
-
-            let j = i;
-            for(; j <= i + 2; j++) res[j] = "to_remove";
-            i = j-1;
-        }
-        else if(insideComment) res[i] = "to_remove";
-    }
-    
-    return res.filter(el => el != "to_remove").join("");
-}
-
-module.exports = function minify(str)
-{
-    let 
-        replaced = commentRemover(str)
-            .replace(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ""),
-        splitPoints = [0],
-        insideString,
-        insideRegex,
+    const
+        lines = str.split(/\n/),
+        split_points = [0],
         res = [];
 
-    for (let i in replaced)
-    {
-        if(replaced[i] == '"' && replaced[i-1] != '\\' && !insideRegex) insideString = !insideString;
-        else if(replaced[i] == '/' && replaced[i-1] != '\\' && !insideString) insideRegex = !insideRegex;
-        else if((replaced[i] == ';' || replaced[i] == '[') && !insideString && !insideRegex) splitPoints.push(Number(i)+1);
-    }
+    let
+        minified = '',
+        COMMENT_S = false,
+        COMMENT_M = false,
+        STRING = false,
+        REGEXP = false;
 
-    for(let i = 0; i < splitPoints.length; i++)
+    for(let i = 0; i < lines.length; i++) 
     {
-        const string = replaced.substr(
-            splitPoints[i],
-            splitPoints[i+1] - splitPoints[i]
+        const line = lines[i];
+        if(line) for(let j = 0; j < lines[i].length; j++)
+        {
+            if(!COMMENT_S && !COMMENT_M && !STRING && !REGEXP)
+            {
+                if(/\s/.test(line[j])) continue;
+                else
+                if(line[j] === '#') COMMENT_S = true;
+                else
+                if(line[j] + line[j+1] + line[j+2] == '\'\'\'')
+                {
+                    COMMENT_M = true;
+                    j+=2;
+                    continue;
+                }
+                else
+                if(line[j] == '"') STRING = true;
+                else
+                if(line[j] == '/') REGEXP = true;
+                else
+                if(line[j] == '[' || line[j] == ';')
+                {
+                    split_points.push(minified.length+1);
+                }
+            }
+            else
+            {
+                if(COMMENT_S && j+1 == line.length)
+                {
+                    COMMENT_S = false;
+                    continue;
+                }
+                else
+                if(COMMENT_M && line[j-2] + line[j-1] + line[j] == '\'\'\'' && line[j+1] !== '\'')
+                {
+                    COMMENT_M = false;
+                    continue;
+                }
+                else
+                if(STRING)
+                {
+                    if(line[j] == '"' && line[j-1] !== '\\') STRING = false;
+                }
+                else
+                if(REGEXP && line[j] == '/' && line[j-1] !== '\\') REGEXP = false;
+            }
+            if(!COMMENT_M && !COMMENT_S)
+            {
+                minified += line[j]
+                if(STRING && j+1 == line.length) minified += '\n';
+            }
+        }
+        else if(STRING) minified += '\n';
+    }
+    
+    for(let i = 1; i < split_points.length; i++) res.push(
+        minified.substring(
+            split_points[i-1], 
+            split_points[i]
         )
-
-        if(string.length > 0) res.push( replaced.substr( splitPoints[i], splitPoints[i+1] - splitPoints[i]) );
-    }
+    )
+    
     return res;
 }
+
+module.exports = minify;

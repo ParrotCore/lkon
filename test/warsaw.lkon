@@ -41,7 +41,7 @@ use "./warsaw_keywords.txt"utf8 as keywords;
     | The best of all the capitals I have been to. |
     """""""""""""""""""""""""""""""""""""""""""""'''
 	@city => "Warsaw";
-	@description => "'[Main.city] - The capital of Poland.";
+	@description => "'[Main.city]' - The capital of Poland.";
 	@cityType => cityType;
 	@population => 17200000;
 	@alphabetRegexp => /^[\p{Script=Latin}\p{P}]+$/u;

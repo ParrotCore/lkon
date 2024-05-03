@@ -1,38 +1,62 @@
-const parse = require("./parser/"),
-      stringify = require("./stringifier/"),
-      { version } = require("./package.json"),
-      { readFileSync } = require('node:fs');
+const 
+    { version } = require('./package.json'),
+    { 
+        readFileSync: read
+    } = require('node:fs'),
+    parse = require('./parser')
+    stringify = require('./stringifier');
 
 /**
  * 
- * @param {Object} initOptions - Options for module initialization.
- * @param {Boolean} initOptions.allowRequire - Set to true if you want to require files with .lkon extension.
- * @param {Boolean} initOptions.allowGlobal - Set to true if you want to have global LKON Object with parse, and stringify methods. 
- * @returns {Object} - LKON Object with parse and stringify methods, and also version string.
+ * @param {object} options
+ * @param {true|false} options.allowGlobal
+ * @param {true|false} options.allowRequire 
+ * @returns {Object}
  */
-function lkonInit(initOptions)
+function init(options={ allowGlobal:false, allowRequire:false })
 {
-    if(initOptions.allowRequire)
-        require.extensions['.lkon'] = (mod,filename) => {
-            try
-            {
-                const content = readFileSync(filename, 'utf8'),
-                    parsedData = parse(content);
-                mod.exports = parsedData;
-            }
-            catch(error)
-            {
-                throw new Error(`Error loading ${filename}: ${error.message}`)
-            }
-        };
-    if(initOptions.allowGlobal)
-        global.LKON = {
-            parse,
-            stringify,
-            version
-        }
+    if(typeof options !== 'object' || options === null || Array.isArray(options)) throw Error('\'options\' argument must be an object.');
 
-    return {parse, stringify, version}
+    const {
+        allowGlobal,
+        allowRequire
+    } = options;
+
+    if(allowRequire) require.extensions['.lkon'] = (mod, filename) => {
+        let
+            parsed = read(filename, 'utf-8');
+            
+        parsed = parse(parsed);
+        mod.exports = parsed
+    }
+
+    if(allowGlobal) global.LKON = {
+        parse,
+        stringify,
+        version
+    };
+
+    return {
+        parse, 
+        stringify, 
+        version
+    }
 }
 
-module.exports = Object.assign(lkonInit, {stringify, parse, version});
+module.exports = new Proxy(
+    init,
+    {
+        get(__, prop)
+        {
+            if(['parse','stringify','version'].includes(prop?.toLowerCase()))
+            {
+                return {
+                    parse,
+                    stringify,
+                    version
+                }[prop.toLowerCase()];
+            }
+            else return null;
+        }
+    }
+)

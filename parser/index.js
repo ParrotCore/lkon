@@ -1,134 +1,156 @@
 const
-    relativePath = require("./relativeLocation"),
-    minify = require("./minifier"),
-    regexps = require("./regexps"),
-    lkonObject = require("./lkonObject"),
-    parseValues = require("./parseValues"),
-    destructure = require("./destructuring"),
-    search = require("./get"),
-    imported = [],
-    { readFileSync: read, existsSync: exists } = require("node:fs");
+    minify = require('./minifier'),
+    parse_value = require('./parse-value'),
+    get_path = require('./get-path.js'),
+    destructurize = require('./destructurize');
 
-/**
- * 
- * @param {String} string LKON Data to parse. 
- * @returns {Object|Array} LKON data parsed to JS data. 
- */
-module.exports = function parse(string)
+function lkonParse(str)
 {
-    const expressions = minify(string),
-          variables = {};
+    const
+        variables = {},
+        import_regexp = /import"(?<path>((?<=\\)"|[^\n"])+)"(?<encoding>[A-Za-z0-9-_]+)as(?<key>[^]+)/,
+        use_regexp = /use(?<value>(\[|([^\[\n]+)(?=as)))(?:(?<!\[)(as(?<key>[^;]+)))?/
 
-    let state = 0,
-        path = [],
-        output = new lkonObject.object(),
-        array_counters = {"": 0};
+    let 
+        res = [],
+        expressions = minify(str),
+        position = 0,
+        path = [];
 
-    variables.Main = output;
+    variables.Main = res;
+    imported = [];
 
     for(let i = 0; i < expressions.length; i++)
     {
         const expression = expressions[i];
-        switch(state)
+
+        // Head handle.
+        if(position === 0)
         {
-            case 0:
+            // End of Head.
+            if(expression == '[')
             {
-                if(expression === '['){
-                    state++;
-                }
-                else if(regexps.header.import.test(expression))
+                position++;
+                continue;
+            }
+
+            let 
+                value,
+                key;
+
+            if(import_regexp.test(expression))
+            {
+                let
+                    {
+                        path,
+                        encoding,
+                        key: _key
+                    } = expression.match(import_regexp).groups;
+
+                value = parse_value(`"${path}"${encoding};`);
+                key = _key;
+
+                if(imported.some(el => el.content === value)) value = imported.find(el => el.content === value).parsed;
+                else
                 {
-                    let {path: Path, encoding, key} = expression.match(regexps.header.import).groups;
-                    Path = relativePath(Path);
-                        
-                    if(!Buffer.isEncoding(encoding) && encoding != 'bin') throw Error(`Cannot recognize '${encoding}' as encoding.`);
-                    if(encoding == 'bin') throw Error(`Cannot interprete file read with 'bin' encoding.`);
-                    if(!exists(Path)) throw Error(`File '${Path}' not found.`);
-
-                    let
-                        file_content = read(Path, encoding),
-                        file;
-
-                    if(imported.some(el => el[0] == file_content)) file = imported.find(el => el[0] == file_content)[1];
-                    else
-                    {
-                        file = module.exports(file_content);
-                        imported.push([file_content, file]);
-                    }
-
-                    if(key != '[') variables[key] = file;
-                    else
-                    {
-                        let {variables: destructured} = destructure(expressions, i, file);
-                        for(let k in destructured) variables[k] = destructured[k];
-                    }
-                }
-                else if(regexps.header.use.test(expression))
-                {
-                    let {value, key} = expression.match(regexps.header.use).groups;
-                    if(value != '[') value = parseValues(value, variables);
-                    else
-                    {
-                        let start = i+1,
-                            end;
-
-                        for(end = structuredClone(start); end < expressions.length; end++) if(expressions[end].startsWith(']') && expressions[end] != '];') break;
-
-                        value = module.exports(`[${expressions.slice(start,end).join("")}];`,variables);
-                        i = end;
-                    }
-                    if(key && key != '[') variables[key] = value;
-                    else {
-                        if(!expressions[i].endsWith('['))
+                    let oldContent = value;
+                    value = lkonParse(value);
+                    imported.push(
                         {
-                            key = expressions[i].substring(3, expressions[i].length-1);
-                            variables[key] = value;
+                            content: oldContent,
+                            parsed: value
                         }
-                        else
-                        {
-                            let {variables: destructured, index} = destructure(expressions, i, value);
-                            for(let k in destructured) variables[k] = destructured[k];
-                            i = index;
-                        }
-                    }
+                    );
                 }
             }
-            break;
-            case 1:
+            else
+            if(use_regexp.test(expression))
             {
-                if(expression === '];') 
+                let
+                    {
+                        value: _value,
+                        key: _key
+                    } = expression.match(use_regexp).groups;
+
+                value = _value;
+
+                if(value == '[')
                 {
-                    if(path.length > 0){
-                        path.pop();
-                    }
-                    else state++;
+                    coords = [
+                        i+1,
+                        i
+                    ];
+
+                    for(; coords[1] < expressions.length; coords[1]++) if(expressions[coords[1]].startsWith(']as')) break;
+
+                    value = lkonParse('[\n'+expressions.slice(...coords).join('')+'\n];');
+                    i = coords[1];
+                    _key = expressions[i].replace(/^\]as|;$/g, '');
                 }
-                else if(regexps.body.line.test(expression))
+                else value = parse_value(value);
+
+                key = _key;
+            }
+
+            if(key === '[') destructurize(value, expressions, variables, i);
+            else variables[key] = value;
+        }
+        // Main handle
+        else if(position === 1)
+        {
+            //End of Main:
+            if(path.length === 0 && expression == '];') break;
+            // Closing objects and skipping ";":
+            if(expression === '];' || expression === ';')
+            {
+                if(expression === '];') path.pop();
+                continue;
+            }
+            
+            let
+                obj = get_path(res, path),
+                [
+                    key,,
+                    value
+                ] = expression.split(/(?<!"([^"]|\\")+)=>/);
+
+            key = key.substring(1);
+
+            if(key !== '*' && Array.isArray(obj) && obj.length === 0)
+            {
+                if(path.length > 0)
                 {
-
-                    let {key, value} = expression.match(regexps.body.line).groups;
-
-                    if(key == '*')
-                    {
-                        key = array_counters[path.join(".")]++;
-                        if(expressions[i-1]=='[') output = new lkonObject.array();
-                    }
-
-                    let current = path.length > 0 ? search(path.join("."), output) : output;
-                    if(value != '[') value = parseValues(value,variables)
-                    else
-                    {
-                        path.push(key);
-                        array_counters[path.join(".")]=0;
-                        if(expressions[i+1]?.startsWith('@*')) value = [];
-                        else value = {};
-                    }
-                    current[key] = value;
+                    let before_object = get_path(res, path.slice(0, path.length-1));
+                    before_object[path[path.length-1]] = {};
+                    obj = get_path(res, path);
+                }
+                else
+                {
+                    res = {};
+                    obj = res;
+                    variables.Main = res;
                 }
             }
-            break;
+            
+            if(key === '*')
+            {
+                if(Array.isArray(obj)) key = obj.length;
+                else key = (
+                        Object.keys(obj)
+                            .filter(k => !isNaN(k))
+                            .sort((a,b) => b-a)[0]
+                        ??
+                        -1
+                    ) + 1;
+            }
+
+            if(value === '[') path.push(key);
+            value = parse_value(value, variables);
+            obj[key] = value;
         }
     }
-    for(let k in variables) output.setVariable(k, variables[k]);
-    return output;
+
+    return res;
 }
+
+module.exports = lkonParse;
