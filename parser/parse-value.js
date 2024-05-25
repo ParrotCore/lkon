@@ -29,13 +29,15 @@ const
                     return true;
                 }
             },
-            (__reg, str) => {
+            (__reg, str, variables, variable_path) => {
                 let {
                     path,
                     encoding
                 } = str.match(regexps[0][0].reg).groups;
 
                 path = path_join(process.mainModule.path, path);
+
+                if(variables?.Main) variables.Main.setVariable(variable_path, str);
 
                 return read(path,encoding)
             }
@@ -66,33 +68,46 @@ const
         //2 - String regexp:
         [
             /"((?<=\\)"|[^"])*"/,
-            (__reg, str, variables) => res = str
-                .replace(/^\s*"|"(?:;)?$/g, '')
-                .replace(
-                    /\[(?<path>[^\n\]]+)\]/g,
-                    function(original_value, path_string)
-                    {
-                        let 
-                            path = path_string?.split('.'),
-                            value;
-
-                        if(path?.length) try
+            (__reg, str, variables, variable_path) => {
+                res = str
+                    .replace(/^\s*"|"(?:;)?$/g, '')
+                    .replace(
+                        /\[(?<path>[^\n\]]+)\]/g,
+                        function(original_value, path_string)
                         {
-                            value = get_path(variables, path);
-                        }
-                        catch(err){}
+                            let 
+                                path = path_string?.split('.'),
+                                value;
 
-                        if(!value && value !== null) return original_value;
-                        return value;
-                    }
-                )
+                            if(path?.length) try
+                            {
+                                value = get_path(variables, path);
+                            }
+                            catch(err){}
+
+                            if(!value && value !== null) return original_value;
+                            return value;
+                        }
+                    )
+
+                if(variables?.Main && str.replace(/^\s*"|"(?:;)?$/g, '') !== res) variables.Main.setVariable(variable_path, str);
+                return res;
+            }
         ],
         //3 - Number 'pseudo-regexp':
         [
             {
                 test: (str) => !isNaN(str.substring(0, str.length-1))
             },
-            (__reg, str) => Number(str.substring(0, str.length-1))
+            (__reg, str, variables, variable_path) => {
+
+                let res = Number(str.substring(0, str.length-1));
+
+                // Keeping notation of number.
+                if(variables?.Main && str.substring(0, str.length-1) !== res.toString()) variables.Main.setVariable(variable_path, str);
+
+                return res;
+            }
         ],
         //4 - Keywords
         [
@@ -121,7 +136,7 @@ const
         ]
     ];
 
-function parse_value(str, variables)
+function parse_value(str, replacer, path, variables)
 {
     if(str == '[') return [];
     for(
@@ -131,7 +146,7 @@ function parse_value(str, variables)
         ] of regexps
     ) 
         if(reg.test(str)) 
-            return method(reg, str, variables);
+            return method(reg, str, variables, path);
 
     let value;
     try
@@ -142,8 +157,12 @@ function parse_value(str, variables)
                 .substring(0, str.length-1)
                 .split('.')
         );
+
+        if(variables?.Main) variables.Main.setVariable(path, str);
     }
     catch(err){}
+
+    if(!value && typeof replacer === 'function') value = replacer(str);
 
     if(!value && value !== false && value !== 0 && value !== null && value !== NaN) value = null;
     return value;

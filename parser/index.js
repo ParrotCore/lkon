@@ -2,9 +2,11 @@ const
     minify = require('./minifier'),
     parse_value = require('./parse-value'),
     get_path = require('./get-path.js'),
-    destructurize = require('./destructurize');
+    destructurize = require('./destructurize'),
+    LKON_Array = require('./classes/lkon-array'),
+    LKON_Object = require('./classes/lkon-object');
 
-function lkonParse(str)
+function lkonParse(str, replacer)
 {
     const
         variables = {},
@@ -12,10 +14,11 @@ function lkonParse(str)
         use_regexp = /use(?<value>(\[|([^\[\n]+)(?=as)))(?:(?<!\[)(as(?<key>[^;]+)))?/
 
     let 
-        res = [],
+        res = new LKON_Array(),
         expressions = minify(str),
         position = 0,
-        path = [];
+        path = [],
+        head;
 
     variables.Main = res;
     imported = [];
@@ -30,6 +33,7 @@ function lkonParse(str)
             // End of Head.
             if(expression == '[')
             {
+                head = expressions.slice(0, i);
                 position++;
                 continue;
             }
@@ -47,7 +51,7 @@ function lkonParse(str)
                         key: _key
                     } = expression.match(import_regexp).groups;
 
-                value = parse_value(`"${path}"${encoding};`);
+                value = parse_value(`"${path}"${encoding};`, replacer);
                 key = _key;
 
                 if(imported.some(el => el.content === value)) value = imported.find(el => el.content === value).parsed;
@@ -87,7 +91,7 @@ function lkonParse(str)
                     i = coords[1];
                     _key = expressions[i].replace(/^\]as|;$/g, '');
                 }
-                else value = parse_value(value);
+                else value = parse_value(value, replacer);
 
                 key = _key;
             }
@@ -126,7 +130,7 @@ function lkonParse(str)
                 }
                 else
                 {
-                    res = {};
+                    res = new LKON_Object();
                     obj = res;
                     variables.Main = res;
                 }
@@ -145,11 +149,12 @@ function lkonParse(str)
             }
 
             if(value === '[') path.push(key);
-            value = parse_value(value, variables);
+            value = parse_value(value, replacer, [...path, key], variables);
             obj[key] = value;
         }
     }
 
+    res.setHead(head);
     return res;
 }
 

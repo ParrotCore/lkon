@@ -1,7 +1,10 @@
-function stringify_value(value, replacer)
+function stringify_value(value, replacer, path, variables)
 {
     switch(true)
     {
+        case path.join('.') in variables:
+            return variables[path.join('.')];
+
         case value === undefined:
             return 'Undefined';
 
