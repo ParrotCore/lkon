@@ -16,7 +16,7 @@ The only thing you have to do is download it in VSC marketplace:
 
 ---
 # What's new?
-Version 5.1.0:
+Version 5.1.2:
 Parser:
 - supports replacer method from now;
 Stringifier:
