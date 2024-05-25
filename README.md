@@ -18,10 +18,10 @@ The only thing you have to do is download it in VSC marketplace:
 # What's new?
 Version 5.1.0:
 Parser:
-	- supports replacer method from now;
+- supports replacer method from now;
 Stringifier:
-	- stringifies template-strings, variables, numbers, etc. to their original form;
-	- stringifies content from file's header;
+- stringifies template-strings, variables, numbers, etc. to their original form;
+- stringifies content from file's header;
 
 ---
 
